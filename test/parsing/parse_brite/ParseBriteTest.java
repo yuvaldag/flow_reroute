@@ -8,18 +8,10 @@ import java.util.Vector;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.junit.Test;
 
-import parsing.graph_creator.GraphCreatorException;
 import reroute_network.Vertex;
 import reroute_network.Edge;
 
 public class ParseBriteTest {
-
-	//@Test
-	public void justTest() {
-		String str = "1   2   3";
-		String splitted[] = str.split("[ ]+");
-		System.out.println(splitted.length);
-	}
 	
 	@Test
 	public void test() {
@@ -35,12 +27,8 @@ public class ParseBriteTest {
 			fail(e.getMessage());
 		}
 		
-		try {
-			graph = briteParser.getGraph(vertices);
-		} catch (GraphCreatorException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		graph = briteParser.getGraph(vertices);
+
 		System.out.println(graph);
 	}
 

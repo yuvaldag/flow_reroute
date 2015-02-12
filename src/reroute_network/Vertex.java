@@ -1,8 +1,12 @@
 package reroute_network;
 
 public class Vertex {
-	int id;
-	public Vertex(int idNum) {
+	final int id;
+	Vertex(int idNum) {
 		id = idNum;
+	}
+	
+	public int getId() {
+		return id;
 	}
 }

@@ -50,6 +50,10 @@ abstract class NetworkExample {
 class NetworkExample1 extends NetworkExample {
 	// Creates the indirected graph:
 	//
+	// v0
+	// |
+	// 1
+	// |
 	// v1---5--v2
 	//   \    /|
 	//   11  7 |
@@ -59,11 +63,14 @@ class NetworkExample1 extends NetworkExample {
 	//   /    \|
 	// v4--2---v3
 	
+	final Vertex v0;
 	final Vertex v1;
 	final Vertex v2;
 	final Vertex v3;
 	final Vertex v4;
 
+	final Edge e10;
+	final Edge e01;
 	final Edge e12;
 	final Edge e21;
 	final Edge e23;
@@ -75,16 +82,31 @@ class NetworkExample1 extends NetworkExample {
 	final Edge e24;
 	final Edge e42;
 
+	final Vector<Vertex> vertices;
+	
 	NetworkExample1() {
+		vertices = new Vector<Vertex>();
+		
+		v0 = new Vertex(0);
+		graph.addVertex(v0);
+		vertices.add(v0);
 		v1 = new Vertex(1);
 		graph.addVertex(v1);
+		vertices.add(v1);
 		v2 = new Vertex(2);
 		graph.addVertex(v2);
+		vertices.add(v2);
 		v3 = new Vertex(3);
 		graph.addVertex(v3);
+		vertices.add(v3);
 		v4 = new Vertex(4);
 		graph.addVertex(v4);
+		vertices.add(v4);
 		
+		e01 = new Edge(1);
+		addEdge(v0, v1, e01);
+		e10 = new Edge(1);
+		addEdge(v1, v0, e10);
 		e12 = new Edge(5);
 		addEdge(v1, v2, e12);
 		e21 = new Edge(5);

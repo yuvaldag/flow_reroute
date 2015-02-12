@@ -1,12 +1,10 @@
 package parsing.parse_brite;
 
-import parsing.graph_creator.GraphCreator;
-import parsing.graph_creator.GraphCreatorException;
-
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import reroute_network.Vertex;
 import reroute_network.Edge;
+import reroute_network.GraphCreator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -110,7 +108,7 @@ public class ParseBrite {
 	 * @return				The parsed graph
 	 */
 	public SimpleDirectedWeightedGraph<Vertex,Edge> getGraph(
-			Vector<Vertex> vertices) throws GraphCreatorException {
+			Vector<Vertex> vertices) {
 		return graphCreator.getGraph(vertices);
 	}
 }

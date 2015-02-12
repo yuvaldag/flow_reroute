@@ -6,6 +6,8 @@ import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.util.VertexPair;
 
+// TODO: Move it to a different package
+
 abstract class DefaultPathRouter {
 	/*
 	 * Find the default path for a new flow.

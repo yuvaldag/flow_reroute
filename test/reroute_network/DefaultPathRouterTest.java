@@ -4,17 +4,20 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import rerouter.PathRerouter;
+
 public class DefaultPathRouterTest {
 	@Test
 	public void testFindDefaultPath() {
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(
-				actual.graph, new PathRerouter());
+				actual.graph, actual.vertices, new PathRerouter(), 0);
 		NetworkExample1 expected = new NetworkExample1();
 
 		try {
-			assertTrue(actualNet.addFlow(0, actual.v1, actual.v2, 1));
-		} catch (FlowExistsException | NegativeDemandException e) {
+			assertTrue(actualNet.addFlow(0, 1, 2, 1));
+		} catch (FlowExistsException | NegativeDemandException |
+					IllegalNodeException e) {
 			fail();
 		}
 		expected.e12.usedCapacity += 1;
@@ -23,17 +26,18 @@ public class DefaultPathRouterTest {
 				actual.equals(expected));
 
 		try {
-			assertFalse(actualNet.addFlow(
-					1, actual.v1, actual.v2, 5));
-		} catch (FlowExistsException | NegativeDemandException e) {
+			assertFalse(actualNet.addFlow(1, 1, 2, 5));
+		} catch (FlowExistsException | NegativeDemandException | 
+					IllegalNodeException e) {
 			e.printStackTrace();
 			fail();
 		}
 		
 		try {
 			assertTrue(actualNet.addFlow(
-					1, actual.v2, actual.v3, 2));
-		} catch (FlowExistsException | NegativeDemandException e) {
+					1, 2, 3, 2));
+		} catch (FlowExistsException | NegativeDemandException |
+					IllegalNodeException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -44,8 +48,9 @@ public class DefaultPathRouterTest {
 				actual.equals(expected));
 		
 		try {
-			assertFalse(actualNet.addFlow(2, actual.v1, actual.v3, 10));
-		} catch (FlowExistsException | NegativeDemandException e) {
+			assertFalse(actualNet.addFlow(2, 1, 3, 10));
+		} catch (FlowExistsException | NegativeDemandException |
+					IllegalNodeException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -62,8 +67,9 @@ public class DefaultPathRouterTest {
 				actual.equals(expected));
 		
 		try {
-			actualNet.addFlow(0, actual.v1, actual.v2, 5);
-		} catch (FlowExistsException | NegativeDemandException e) {
+			actualNet.addFlow(0, 1, 2, 5);
+		} catch (FlowExistsException | NegativeDemandException |
+					IllegalNodeException e) {
 			e.printStackTrace();
 			fail();
 		}

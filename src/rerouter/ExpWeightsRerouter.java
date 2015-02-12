@@ -1,16 +1,21 @@
-package reroute_network;
+package rerouter;
 
-import java.util.HashMap;
+import java.util.Vector;
 
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
-class ExpWeightsRerouter extends PathRerouter {
+import reroute_network.Edge;
+import reroute_network.Flow;
+import reroute_network.RerouteData;
+import reroute_network.Vertex;
+
+public class ExpWeightsRerouter extends PathRerouter {
 	final double expParam;
 	final int numReroutes;
 	
-	ExpWeightsRerouter(int numReroutes, double expParam) {
+	public ExpWeightsRerouter(int numReroutes, double expParam) {
 		this.numReroutes = numReroutes;
 		this.expParam = expParam;
 	}
@@ -24,14 +29,13 @@ class ExpWeightsRerouter extends PathRerouter {
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph, int demand) {
 		for(Edge edge : graph.edgeSet()) {
 			double newWeight;
-			
-			if(edge.usedCapacity + demand > edge.capacity) {
+			if(edge.draftUsedCapacity + demand > edge.getCapacity()) {
 				newWeight = Double.POSITIVE_INFINITY;
 			} else {
 				double costBeforeChange = costFunction(
-						edge.usedCapacity, edge.capacity);
+						edge.draftUsedCapacity, edge.getCapacity());
 				double costAfterChange = costFunction(
-						edge.usedCapacity + demand, edge.capacity);
+						edge.draftUsedCapacity + demand, edge.getCapacity());
 				newWeight = costAfterChange - costBeforeChange;
 			}
 			
@@ -50,22 +54,23 @@ class ExpWeightsRerouter extends PathRerouter {
 		return sum;
 	}
 	
-	private void rerouteOne(
+	private RerouteData rerouteOne(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			HashMap<Integer,Flow> consideredFlows) {
+			Vector<Flow> consideredFlows) {
 		double bestImprovement = 0.0;
-		Flow bestFlow = null;
-		GraphPath<Vertex,Edge> bestPath = null;
+		RerouteData bestRerouteData = null;
 
-		for(Flow flow : consideredFlows.values()) {
-			RerouteNet.removeFlowFromNet(flow);
+		setDraftUsedCapacities(graph);
+		
+		for(Flow flow : consideredFlows) {
+			removeFlowDraft(flow);
 
-			setWeights(graph, flow.demand);
+			setWeights(graph, flow.getDemand());
 			
-			double oldWeight = pathWeight(graph, flow.path);
+			double oldWeight = pathWeight(graph, flow.getPath());
 			
-			Vertex source = flow.path.getStartVertex();
-			Vertex target = flow.path.getEndVertex();
+			Vertex source = flow.getPath().getStartVertex();
+			Vertex target = flow.getPath().getEndVertex();
 			DijkstraShortestPath<Vertex,Edge> shortestPathObj = 
 					new DijkstraShortestPath<Vertex,Edge>(
 							graph, source, target);
@@ -76,27 +81,28 @@ class ExpWeightsRerouter extends PathRerouter {
 			
 			if(improvement < bestImprovement) {
 				bestImprovement = improvement;
-				bestFlow = flow;
-				bestPath = shortestPath;
+				bestRerouteData = new RerouteData(flow, shortestPath);
 			}
 			
-			RerouteNet.addFlowToNet(flow);
+			addFlowDraft(flow);
 		}
 		
-		// TODO: Check if greater than some epsilon
-		// TODO: If the condition is false then we can give up trying to
-		//		 	reroute more flows
-		if(bestImprovement < 0.0) {
-			RerouteNet.removeFlowFromNet(bestFlow);
-			bestFlow.path = bestPath;
-			RerouteNet.addFlowToNet(bestFlow);
-		}
+		// TODO: Return null if best improvement is smaller than some epsilon
+		return bestRerouteData;
 	}
 
-	void reroute(
+	public Vector<RerouteData> reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			HashMap<Integer,Flow> consideredFlows) {
-		for(int i = 0; i < numReroutes; i++)
-			rerouteOne(graph, consideredFlows);
+			Vector<Flow> consideredFlows) {
+		Vector<RerouteData> ret = new Vector<RerouteData>();
+		for(int i = 0; i < numReroutes; i++) {
+			RerouteData newData = rerouteOne(graph, consideredFlows);
+			if (newData == null)
+				return ret;
+			
+			ret.add(newData);
+		}
+		
+		return ret;
 	}
 }

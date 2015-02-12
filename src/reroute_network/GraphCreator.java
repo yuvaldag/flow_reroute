@@ -1,4 +1,4 @@
-package parsing.graph_creator;
+package reroute_network;
 
 import java.util.Vector;
 
@@ -45,7 +45,7 @@ public class GraphCreator extends Object {
 	 * @return				The created graph
 	 */
 	public SimpleDirectedWeightedGraph<Vertex,Edge> getGraph(
-			Vector<Vertex> vertices) throws GraphCreatorException {
+			Vector<Vertex> vertices) {
 		SimpleDirectedWeightedGraph<Vertex,Edge> graph =
 				new SimpleDirectedWeightedGraph<Vertex,Edge>(Edge.class);
 		
@@ -54,7 +54,7 @@ public class GraphCreator extends Object {
 			Vertex vertex = new Vertex(i);
 			vertices.add(vertex);
 			if (!graph.addVertex(vertex))
-				throw new GraphCreatorException("Vertex already exists.");
+				throw new UnexpectedInternalException("Vertex alread exsists");
 		}
 		
 		for(EdgeData edata : edgeData) {
