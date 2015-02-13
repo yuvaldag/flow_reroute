@@ -74,4 +74,51 @@ public class ExpWeightsRerouterTest {
 		}
 	}
 
+	@Test
+	public void testRerouteMultipleFlows() {
+		// TODO: add a test for re-routing multiple flows at once
+		// TODO: see what happens when the demands are greater than one 
+		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(2, 10.0);
+		NetworkExample1 expected = new NetworkExample1();
+		NetworkExample1 actual = new NetworkExample1();
+		RerouteNet actualNet = new RerouteNet(
+				actual.graph, actual.vertices, rerouter, 2);
+		try {
+			actualNet.addFlow(0, 1, 2, 2);
+			actualNet.addFlow(1, 1, 2, 1);
+			actualNet.addFlow(2, 1, 2, 1);
+			actualNet.addFlow(3, 1, 2, 1);
+			actualNet.rerouteFlows();
+		} catch (FlowExistsException | NegativeDemandException |
+				  IllegalNodeException | tooManyReroutingsException |
+				  IllegalPathException | NotEnoughCapacityException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
+		expected.e12.usedCapacity += 2;
+		
+		expected.e13.usedCapacity += 2;
+		expected.e32.usedCapacity += 2;
+		
+		expected.e13.usedCapacity += 1;
+		expected.e34.usedCapacity += 1;
+		expected.e42.usedCapacity += 1;
+		
+		assertTrue(
+				NetworkExample.networkNonEqualsMsg(actual, expected),
+				expected.equals(actual));
+		
+		try {
+			actualNet.rerouteFlows();
+		} catch (tooManyReroutingsException | IllegalPathException
+				| NotEnoughCapacityException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
+		assertTrue(
+				NetworkExample.networkNonEqualsMsg(actual, expected),
+				expected.equals(actual));
+	}
 }

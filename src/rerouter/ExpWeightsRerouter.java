@@ -59,11 +59,9 @@ public class ExpWeightsRerouter extends PathRerouter {
 			Vector<Flow> consideredFlows) {
 		double bestImprovement = 0.0;
 		RerouteData bestRerouteData = null;
-
-		setDraftUsedCapacities(graph);
 		
 		for(Flow flow : consideredFlows) {
-			removeFlowDraft(flow);
+			changeUsedCapacityDraft(flow.getPath(), -flow.getDemand());
 
 			setWeights(graph, flow.getDemand());
 			
@@ -84,7 +82,7 @@ public class ExpWeightsRerouter extends PathRerouter {
 				bestRerouteData = new RerouteData(flow, shortestPath);
 			}
 			
-			addFlowDraft(flow);
+			changeUsedCapacityDraft(flow.getPath(), flow.getDemand());
 		}
 		
 		// TODO: Return null if best improvement is smaller than some epsilon
@@ -95,14 +93,20 @@ public class ExpWeightsRerouter extends PathRerouter {
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
 			Vector<Flow> consideredFlows) {
 		Vector<RerouteData> ret = new Vector<RerouteData>();
+		
+		setDraftUsedCapacities(graph);
+		
 		for(int i = 0; i < numReroutes; i++) {
 			RerouteData newData = rerouteOne(graph, consideredFlows);
 			if (newData == null)
 				return ret;
-			
+
 			ret.add(newData);
+			changeUsedCapacityDraft(
+					newData.flow.getPath(), -newData.flow.getDemand());
+			changeUsedCapacityDraft(newData.newPath, newData.flow.getDemand());
 		}
-		
+
 		return ret;
 	}
 }

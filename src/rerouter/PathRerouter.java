@@ -2,6 +2,7 @@ package rerouter;
 
 import java.util.Vector;
 
+import org.jgrapht.GraphPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import reroute_network.Edge;
@@ -24,15 +25,9 @@ public class PathRerouter {
 		}
 	}
 	
-	void addFlowDraft(Flow flow) {
-		for (Edge e : flow.getPath().getEdgeList()) {
-			e.draftUsedCapacity += flow.getDemand();
-		}
-	}
-	
-	void removeFlowDraft(Flow flow) {
-		for (Edge e : flow.getPath().getEdgeList()) {
-			e.draftUsedCapacity -= flow.getDemand();
+	void changeUsedCapacityDraft(GraphPath<Vertex,Edge> path, int change) {
+		for (Edge e : path.getEdgeList()) {
+			e.draftUsedCapacity += change;
 		}
 	}
 }
