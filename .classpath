@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="parsing/" kind="src" path="src"/>
+	<classpathentry kind="src" path="src/parsing"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="src/lib/jgraph-5.13.0.0.jar"/>
+	<classpathentry kind="lib" path="src/lib/jgrapht-core-0.9.0.jar"/>
+	<classpathentry kind="lib" path="src/lib/jgrapht-demo-0.9.0.jar"/>
+	<classpathentry kind="lib" path="src/lib/jgrapht-ext-0.9.0-uber.jar"/>
+	<classpathentry kind="lib" path="src/lib/jgrapht-ext-0.9.0.jar"/>
+	<classpathentry kind="lib" path="src/lib/jgraphx-2.0.0.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
