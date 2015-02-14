@@ -71,6 +71,7 @@ public class ParseBrite {
 			int target = Integer.parseInt(tokens[2]);
 			int capacity = Double.valueOf(tokens[5]).intValue();
 			graphCreator.addEdge(source, target, capacity);
+			graphCreator.addEdge(target, source, capacity);
 		} catch (NumberFormatException e) {
 			throw new BadFormatException(e.getMessage());
 		}
