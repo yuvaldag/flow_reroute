@@ -6,20 +6,23 @@ import java.util.TreeMap;
 
 public class FlowGenerator {
 	final Random randomGen;
-	final TreeMap<Double, Integer> nodeActivities;
-	final double demandFrequencyExpParam;
+	final TreeMap<Double, Integer> thresholds;
+	final double flowFrequencyExpParam;
 	final double flowDurationExpParam;
+	final double demandExpParam;
 
-	FlowGenerator(
+	public FlowGenerator(
 			int numNodes,
-			double demandFrequencyExpParam,
+			double flowFrequencyExpParam,
 			double flowDurationExpParam,
+			double demandExpParam,
 			long seed) {
 		randomGen = new Random(seed);
-		nodeActivities = new TreeMap<Double, Integer>();
+		thresholds = new TreeMap<Double, Integer>();
 		setNodeActivity(numNodes);
-		this.demandFrequencyExpParam = demandFrequencyExpParam;
+		this.flowFrequencyExpParam = flowFrequencyExpParam;
 		this.flowDurationExpParam = flowDurationExpParam;
+		this.demandExpParam = demandExpParam;
 	}
 
 	private double getRandomExp(final double expParam) {
@@ -41,7 +44,7 @@ public class FlowGenerator {
 		
 		double partialSum = 0;
 		for (int i = 0; i < weights.length; i++) {
-			nodeActivities.put(partialSum / totalSum, i);
+			thresholds.put(partialSum / totalSum, i);
 			partialSum += weights[i];
 		}
 	}
@@ -51,7 +54,7 @@ public class FlowGenerator {
 		// If we didn't do so then we would get an error
 		final double randNum = 1 - randomGen.nextDouble();
 		final Map.Entry<Double, Integer> entry =
-				nodeActivities.lowerEntry(randNum);
+				thresholds.lowerEntry(randNum);
 		
 		return entry.getValue();
 	}
@@ -64,9 +67,9 @@ public class FlowGenerator {
 			target = getRandNode();
 		}
 		
-		final double delayTime = getRandomExp(demandFrequencyExpParam);
+		final double delayTime = getRandomExp(flowFrequencyExpParam);
 		final double duration = getRandomExp(flowDurationExpParam);
-		
-		return new FlowInfo(source, target, delayTime, duration);
+		final int demand = (int) getRandomExp(demandExpParam) + 1;
+		return new FlowInfo(source, target, demand, delayTime, duration);
 	}
 }

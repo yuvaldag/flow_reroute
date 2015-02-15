@@ -7,15 +7,15 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import reroute_network.Vertex;
 import reroute_network.Edge;
 
-class EdgeData {
-	final int source;
-	final int target;
-	final int capacity;
-
-	EdgeData(final int source, final int target, final int capacity) {
-		this.source = source;
-		this.target = target;
-		this.capacity = capacity;
+class GraphData {
+	final SimpleDirectedWeightedGraph<Vertex, Edge> graph;
+	final Vector<Vertex> vertices;
+	
+	GraphData(
+			SimpleDirectedWeightedGraph<Vertex, Edge> graph,
+			Vector<Vertex> vertices) {
+		this.graph = graph;
+		this.vertices = vertices;
 	}
 }
 
@@ -23,33 +23,25 @@ class EdgeData {
  * Used to gather data to create a graph.
  */
 public class GraphCreator extends Object {
-	final int numVertices;
-	final Vector<EdgeData> edgeData;
+	private final int numVertices;
+	private final Vector<EdgeData> edgeData;
 
-	public GraphCreator(final int numVertices) {
+	public GraphCreator(
+			final int numVertices, final Vector<EdgeData> edgeData) {
 		this.numVertices = numVertices;
-		edgeData = new Vector<EdgeData>();
-	}
-	
-	public void addEdge(
-			final int source, final int target, final int capacity) {
-		edgeData.add(new EdgeData(source, target, capacity));
+		this.edgeData = new Vector<EdgeData>(edgeData);
 	}
 	
 	/*
-	 * Creates a graph.
+	 * Creates a new graph based on the data and returns it.
 	 * 
-	 * @param vertices		An output parameter. It will contain all vertices,
-	 * 							while vertex number i is in the i'th index,
-	 * 							for all i.
 	 * @return				The created graph
 	 */
-	public SimpleDirectedWeightedGraph<Vertex,Edge> getGraph(
-			Vector<Vertex> vertices) {
+	GraphData createGraph() {
 		SimpleDirectedWeightedGraph<Vertex,Edge> graph =
 				new SimpleDirectedWeightedGraph<Vertex,Edge>(Edge.class);
-		
-		vertices.clear();
+		Vector<Vertex> vertices = new Vector<Vertex>();
+
 		for(int i = 0; i < numVertices; i++) {
 			Vertex vertex = new Vertex(i);
 			vertices.add(vertex);
@@ -65,6 +57,15 @@ public class GraphCreator extends Object {
 					edge);
 		}
 		
-		return graph;
+		return new GraphData(graph, vertices);
+	}
+	
+	public int getNumVertices() {
+		return numVertices;
+	}
+	
+	public String toString() {
+		GraphData data = createGraph();
+		return data.graph.toString();
 	}
 }

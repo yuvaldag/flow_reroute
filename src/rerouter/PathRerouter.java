@@ -7,7 +7,6 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import reroute_network.Edge;
 import reroute_network.Flow;
-import reroute_network.RerouteData;
 import reroute_network.Vertex;
 
 public class PathRerouter {

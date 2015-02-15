@@ -8,7 +8,6 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import reroute_network.Edge;
 import reroute_network.Flow;
-import reroute_network.RerouteData;
 import reroute_network.Vertex;
 
 public class ExpWeightsRerouter extends PathRerouter {
@@ -21,6 +20,8 @@ public class ExpWeightsRerouter extends PathRerouter {
 	}
 
 	double costFunction(int usedCapacity, int totalCapacity) {
+		// TODO: make it faster. Maybe by calculating values of exp(-x)
+		// 		 beforehand for different values of x.
 		return Math.exp(
 				-expParam * (totalCapacity - usedCapacity) / totalCapacity);
 	}

@@ -11,7 +11,9 @@ public class DefaultPathRouterTest {
 	public void testFindDefaultPath() {
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(
-				actual.graph, actual.vertices, new PathRerouter(), 0);
+				new GraphData(actual.graph, actual.vertices),
+				new PathRerouter(),
+				0);
 		NetworkExample1 expected = new NetworkExample1();
 
 		try {

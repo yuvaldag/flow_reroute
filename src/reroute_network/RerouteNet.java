@@ -7,6 +7,7 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import rerouter.PathRerouter;
+import rerouter.RerouteData;
 
 public class RerouteNet {
 	final SimpleDirectedWeightedGraph<Vertex, Edge> graph;
@@ -17,28 +18,22 @@ public class RerouteNet {
 	final int numAllowedReroutings;
 	
 	RerouteNet(
-			final SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			final Vector<Vertex> vertices,
+			final GraphData graphData,
 			final PathRerouter pathRerouter,
 			final int numAllowedReroutings) {
-		this.vertices = vertices;
-		this.graph = graph;
-		defaultPathRouter = new ShortestPathDefaultRouter(graph);
+		this.graph = graphData.graph;
+		this.vertices = graphData.vertices;
 		this.pathRerouter = pathRerouter;
 		this.numAllowedReroutings = numAllowedReroutings;
-		flows = new HashMap<Integer,Flow>();
+		this.flows = new HashMap<Integer,Flow>();
+		this.defaultPathRouter = new ShortestPathDefaultRouter(graph);
 	}
 	
 	public RerouteNet(
-			final GraphCreator creator,
+			final GraphCreator graphCreator,
 			final PathRerouter pathRerouter,
 			final int numAllowedReroutings) {
-		vertices = new Vector<Vertex>();
-		this.graph = creator.getGraph(vertices);
-		defaultPathRouter = new ShortestPathDefaultRouter(graph);
-		this.pathRerouter = pathRerouter;
-		this.numAllowedReroutings = numAllowedReroutings;
-		flows = new HashMap<Integer,Flow>();
+		this(graphCreator.createGraph(), pathRerouter, numAllowedReroutings);
 	}
 
 	/*

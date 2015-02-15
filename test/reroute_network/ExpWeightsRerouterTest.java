@@ -21,7 +21,9 @@ public class ExpWeightsRerouterTest {
 		NetworkExample1 expected = new NetworkExample1();
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(
-				actual.graph, actual.vertices, rerouter, 1);
+				new GraphData(actual.graph, actual.vertices),
+				rerouter,
+				1);
 		try {
 			expected.e12.usedCapacity += 1;
 			actualNet.addFlow(0, 1, 2, 1);
@@ -82,7 +84,9 @@ public class ExpWeightsRerouterTest {
 		NetworkExample1 expected = new NetworkExample1();
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(
-				actual.graph, actual.vertices, rerouter, 2);
+				new GraphData(actual.graph, actual.vertices),
+				rerouter,
+				2);
 		try {
 			actualNet.addFlow(0, 1, 2, 2);
 			actualNet.addFlow(1, 1, 2, 1);

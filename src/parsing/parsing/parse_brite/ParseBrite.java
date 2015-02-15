@@ -1,9 +1,6 @@
 package parsing.parse_brite;
 
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-
-import reroute_network.Vertex;
-import reroute_network.Edge;
+import reroute_network.EdgeData;
 import reroute_network.GraphCreator;
 
 import java.io.IOException;
@@ -29,10 +26,12 @@ class BadFormatException extends Exception {
 	}
 }
 
-public class ParseBrite {
-	final GraphCreator graphCreator;
+public final class ParseBrite {
 	
-	private int getNumNodesOrEdges(Iterator<String> iter, String keyword)
+	private ParseBrite() {
+	}
+	
+	private static int getNumNodesOrEdges(Iterator<String> iter, String keyword)
 			throws BadFormatException {
 		while(iter.hasNext()) {
 			String line = iter.next();
@@ -53,7 +52,8 @@ public class ParseBrite {
 				"The line containing " + keyword + " does not appear");
 	}
 	
-	private void addEdge(Iterator<String> iter) throws BadFormatException {
+	private static void addEdge(Iterator<String> iter, Vector<EdgeData> edges)
+			throws BadFormatException {
 		if (!iter.hasNext())
 			throw new BadFormatException("Not enough lines to read all edges");
 		
@@ -70,14 +70,15 @@ public class ParseBrite {
 			int source = Integer.parseInt(tokens[1]);
 			int target = Integer.parseInt(tokens[2]);
 			int capacity = Double.valueOf(tokens[5]).intValue();
-			graphCreator.addEdge(source, target, capacity);
-			graphCreator.addEdge(target, source, capacity);
+			edges.add(new EdgeData(source, target, capacity));
+			edges.add(new EdgeData(target, source, capacity));
 		} catch (NumberFormatException e) {
 			throw new BadFormatException(e.getMessage());
 		}
 	}
 	
-	public ParseBrite(String filename) throws IOException {
+	public static GraphCreator parse(String filename) throws IOException {
+		Vector<EdgeData> allEdgeData = new Vector<EdgeData>();
 		List<String> lines = Files.readAllLines(Paths.get(filename));
 		Iterator<String> iter = lines.iterator();
 		int numNodes = 0;
@@ -85,12 +86,10 @@ public class ParseBrite {
 		
 		try {
 			numNodes = getNumNodesOrEdges(iter, "Nodes:");
-			graphCreator = new GraphCreator(numNodes);
-			
 			numEdges = getNumNodesOrEdges(iter, "Edges:");
 			
 			for(int i = 0; i < numEdges; i++) {
-				addEdge(iter);
+				addEdge(iter, allEdgeData);
 			}
 
 		} catch (BadFormatException e) {
@@ -100,16 +99,7 @@ public class ParseBrite {
 					". " +
 					e.getMessage());
 		}
-	}
-	
-	/*
-	 * Gets the graph.
-	 * 
-	 * @param vertices		Output param to store all vertices
-	 * @return				The parsed graph
-	 */
-	public SimpleDirectedWeightedGraph<Vertex,Edge> getGraph(
-			Vector<Vertex> vertices) {
-		return graphCreator.getGraph(vertices);
+		
+		return new GraphCreator(numNodes, allEdgeData);
 	}
 }
