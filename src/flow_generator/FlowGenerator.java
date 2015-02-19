@@ -7,38 +7,41 @@ import java.util.TreeMap;
 public class FlowGenerator {
 	final Random randomGen;
 	final TreeMap<Double, Integer> thresholds;
-	final double flowFrequencyExpParam;
-	final double flowDurationExpParam;
-	final double demandExpParam;
+	final Distribution flowFrequencyGen;
+	final Distribution flowDurationGen;
+	final Distribution demandGen;
 
 	public FlowGenerator(
 			int numNodes,
-			double flowFrequencyExpParam,
-			double flowDurationExpParam,
-			double demandExpParam,
+			Distribution flowFrequencyGen,
+			Distribution flowDurationGen,
+			Distribution demandGen,
 			long seed) {
 		randomGen = new Random(seed);
 		thresholds = new TreeMap<Double, Integer>();
 		setNodeActivity(numNodes);
-		this.flowFrequencyExpParam = flowFrequencyExpParam;
-		this.flowDurationExpParam = flowDurationExpParam;
-		this.demandExpParam = demandExpParam;
-	}
-
-	private double getRandomExp(final double expParam) {
-		return -Math.log(1 - randomGen.nextDouble()) / expParam;
+		this.flowFrequencyGen = flowFrequencyGen;
+		this.flowDurationGen = flowDurationGen;
+		this.demandGen = demandGen;
 	}
 
 	private void setNodeActivity(final int numNodes) {
 		final double[] weights = new double[numNodes];
 		
 		// since we scale the results at the end, the value of 
-		// exp-param dosn't matter
-		final double expParam = 1;
+		// lambda dosn't matter
+		Distribution weightGen;
+		try {
+			weightGen = new ExpDistribution(1);
+		} catch (ExpException e) {
+			e.printStackTrace();
+			throw new RuntimeException("FlowGenerator.setNodeActivity: "
+					+ "internal error");
+		}
 		
 		double totalSum = 0;
 		for (int i = 0; i < weights.length; i++) {
-			weights[i] = getRandomExp(expParam);
+			weights[i] = weightGen.getRandomSample(randomGen);
 			totalSum += weights[i];
 		}
 		
@@ -67,9 +70,10 @@ public class FlowGenerator {
 			target = getRandNode();
 		}
 		
-		final double delayTime = getRandomExp(flowFrequencyExpParam);
-		final double duration = getRandomExp(flowDurationExpParam);
-		final int demand = (int) getRandomExp(demandExpParam) + 1;
+		final double delayTime = flowFrequencyGen.getRandomSample(randomGen);
+		final double duration = flowDurationGen.getRandomSample(randomGen);
+		final int demand = 
+				(int) Math.round(demandGen.getRandomSample(randomGen));
 		return new FlowInfo(source, target, demand, delayTime, duration);
 	}
 }

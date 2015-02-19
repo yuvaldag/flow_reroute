@@ -17,7 +17,7 @@ public class ExpWeightsRerouterTest {
 	 * 		- Check what happens when there are 2 reroute possibilities
 	 */
 	public void testReroute() {
-		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(1, 10.0);
+		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(10.0);
 		NetworkExample1 expected = new NetworkExample1();
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(
@@ -80,7 +80,7 @@ public class ExpWeightsRerouterTest {
 	public void testRerouteMultipleFlows() {
 		// TODO: add a test for re-routing multiple flows at once
 		// TODO: see what happens when the demands are greater than one 
-		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(2, 10.0);
+		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(10.0);
 		NetworkExample1 expected = new NetworkExample1();
 		NetworkExample1 actual = new NetworkExample1();
 		RerouteNet actualNet = new RerouteNet(

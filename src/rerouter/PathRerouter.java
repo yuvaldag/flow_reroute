@@ -12,8 +12,8 @@ import reroute_network.Vertex;
 public class PathRerouter {
 	public Vector<RerouteData> reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows) {
-		
+			Vector<Flow> consideredFlows,
+			int numReroutes) {
 		return new Vector<RerouteData>();
 	}
 	

@@ -12,10 +12,8 @@ import reroute_network.Vertex;
 
 public class ExpWeightsRerouter extends PathRerouter {
 	final double expParam;
-	final int numReroutes;
 	
-	public ExpWeightsRerouter(int numReroutes, double expParam) {
-		this.numReroutes = numReroutes;
+	public ExpWeightsRerouter(double expParam) {
 		this.expParam = expParam;
 	}
 
@@ -92,7 +90,8 @@ public class ExpWeightsRerouter extends PathRerouter {
 
 	public Vector<RerouteData> reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows) {
+			Vector<Flow> consideredFlows,
+			int numReroutes) {
 		Vector<RerouteData> ret = new Vector<RerouteData>();
 		
 		setDraftUsedCapacities(graph);

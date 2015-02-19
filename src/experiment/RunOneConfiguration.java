@@ -1,6 +1,7 @@
 package experiment;
 
 import java.util.PriorityQueue;
+import java.util.Vector;
 
 import flow_generator.FlowGenerator;
 import flow_generator.FlowInfo;
@@ -12,19 +13,27 @@ public class RunOneConfiguration {
 	final private RerouteNet rerouteNet;
 	final private FlowGenerator flowGen;
 	final private PriorityQueue<Event> events;
+	final private Vector<String> trace;
 	private int nextFlowId;
 	
 	RunOneConfiguration(
 			final RerouteNet rerouteNet,
 			final FlowGenerator flowGen,
 			final double reroutePeriod,
-			final double totalTime) {
+			final double totalTime,
+			final boolean getTrace) {
 		this.reroutePeriod = reroutePeriod;
 		this.rerouteNet = rerouteNet;
 		this.flowGen = flowGen;
 		
 		this.events = new PriorityQueue<Event>();
 		this.events.add(new ExperimentEndEvent(totalTime));
+		
+		if (getTrace) {
+			trace = new Vector<String>();
+		} else {
+			trace = null;
+		}
 		
 		this.nextFlowId = 0;
 	}
@@ -45,6 +54,12 @@ public class RunOneConfiguration {
 	private void addRerouteEvent(double currentTime) {
 		events.add(new RerouteEvent(reroutePeriod + currentTime));
 	}
+
+	private void addTrace(String str) {
+		if (trace != null) {
+			trace.addElement(str);
+		}
+	}
 	
 	double run() throws RerouteNetException {
 		int flowsAddedSuccessfully = 0;
@@ -55,6 +70,8 @@ public class RunOneConfiguration {
 		
 		while (true) {
 			Event event = events.poll();
+			
+			addTrace(event.toString());
 			
 			if (event instanceof FlowStartEvent) {
 				FlowStartEvent flowStart = (FlowStartEvent) event;
@@ -70,13 +87,15 @@ public class RunOneConfiguration {
 					events.add(flowEnd);
 				} else {
 					flowsFailedToAdd += 1;
-				}
-				
+					addTrace("event failed to add");
+				} 
+	
 				addFlowStartEvent(flowStart.timestamp);
 			} else if (event instanceof FlowEndEvent) {
 				FlowEndEvent flowEnd = (FlowEndEvent) event;
 				rerouteNet.removeFlow(flowEnd.id);
 			} else if (event instanceof RerouteEvent) {
+				rerouteNet.rerouteFlows();
 				addRerouteEvent(event.timestamp);
 			} else if (event instanceof ExperimentEndEvent) {
 				break;
@@ -86,7 +105,13 @@ public class RunOneConfiguration {
 			}
 		}
 		
-		return flowsAddedSuccessfully /
+		return flowsFailedToAdd * 1.0 /
 				(flowsAddedSuccessfully + flowsFailedToAdd);
+	}
+	
+	public void printTrace() {
+		for (String line : trace) {
+			System.out.println(line);
+		}
 	}
 }

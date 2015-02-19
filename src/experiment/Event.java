@@ -13,6 +13,10 @@ abstract class Event implements Comparable<Event> {
 		
 		return thisTime.compareTo(eventTime);
 	}
+	
+	public String toString() {
+		return "time: " + timestamp;
+	}
 }
 
 class FlowStartEvent extends Event {
@@ -36,6 +40,16 @@ class FlowStartEvent extends Event {
 		this.duration = duration;
 		this.id = id;
 	}
+	
+	public String toString() {
+		return super.toString() +
+				" type: flow start." +
+				" id: " + id +
+				" source " + source +
+				" target: " + target + 
+				" demand " + demand +
+				" duration: " + duration;
+	}
 }
 
 class FlowEndEvent extends Event {
@@ -45,16 +59,32 @@ class FlowEndEvent extends Event {
 		super(timestamp);
 		this.id = id;
 	}
+	
+	public String toString() {
+		return super.toString() +
+				" type: flow end." +
+				" id: " + id;
+	}
 }
 
 class RerouteEvent extends Event {
 	RerouteEvent(final double timestamp) {
 		super(timestamp);
 	}
+	
+	public String toString() {
+		return super.toString() +
+				" type: reroute";
+	}
 }
 
 class ExperimentEndEvent extends Event {
 	ExperimentEndEvent(final double timestamp) {
 		super(timestamp);
+	}
+	
+	public String toString() {
+		return super.toString() +
+				" type: experiment end.";
 	}
 }

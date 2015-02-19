@@ -125,7 +125,8 @@ public class RerouteNet {
 					NotEnoughCapacityException {
 		Vector<RerouteData> dataOfFlows = pathRerouter.reroute(
 				(SimpleDirectedWeightedGraph<Vertex, Edge>)graph.clone(),
-				getElephantFlows());
+				getElephantFlows(),
+				numAllowedReroutings);
 		
 		if (dataOfFlows.size() > numAllowedReroutings)
 			throw new tooManyReroutingsException();
