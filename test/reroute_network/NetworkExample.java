@@ -103,29 +103,29 @@ class NetworkExample1 extends NetworkExample {
 		graph.addVertex(v4);
 		vertices.add(v4);
 		
-		e01 = new Edge(1);
+		e01 = new Edge(1,0);
 		addEdge(v0, v1, e01);
-		e10 = new Edge(1);
+		e10 = new Edge(1,1);
 		addEdge(v1, v0, e10);
-		e12 = new Edge(5);
+		e12 = new Edge(5,2);
 		addEdge(v1, v2, e12);
-		e21 = new Edge(5);
+		e21 = new Edge(5,3);
 		addEdge(v2, v1, e21);
-		e23 = new Edge(3);
+		e23 = new Edge(3,4);
 		addEdge(v2, v3, e23);
-		e32 = new Edge(3);
+		e32 = new Edge(3,5);
 		addEdge(v3, v2, e32);
-		e34 = new Edge(2);
+		e34 = new Edge(2,6);
 		addEdge(v3, v4, e34);
-		e43 = new Edge(2);
+		e43 = new Edge(2,7);
 		addEdge(v4, v3, e43);
-		e13 = new Edge(11);
+		e13 = new Edge(11,8);
 		addEdge(v1, v3, e13);
-		e31 = new Edge(11);
+		e31 = new Edge(11,9);
 		addEdge(v3, v1, e31);
-		e24 = new Edge(7);
+		e24 = new Edge(7,10);
 		addEdge(v2, v4, e24);
-		e42 = new Edge(7);
+		e42 = new Edge(7,11);
 		addEdge(v4, v2, e42);
 	}
 }

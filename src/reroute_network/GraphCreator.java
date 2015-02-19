@@ -49,11 +49,11 @@ public class GraphCreator extends Object {
 				throw new UnexpectedInternalException("Vertex alread exsists");
 		}
 		
-		for(EdgeData edata : edgeData) {
-			Edge edge = new Edge(edata.capacity);
+		for(int i = 0; i < edgeData.size(); i++) {
+			Edge edge = new Edge(edgeData.get(i).capacity, i);
 			graph.addEdge(
-					vertices.get(edata.source),
-					vertices.get(edata.target),
+					vertices.get(edgeData.get(i).source),
+					vertices.get(edgeData.get(i).target),
 					edge);
 		}
 		

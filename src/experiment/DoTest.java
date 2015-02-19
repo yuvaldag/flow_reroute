@@ -20,7 +20,7 @@ public class DoTest {
 		GraphCreator creator = ParseBrite.parse(
 				"config_files/test/parsing/parse_brite/tmp_net.brite");
 		PathRerouter rerouter = new ExpWeightsRerouter(10.0);
-		RerouteNet rerouteNet = new RerouteNet(creator, rerouter, 20);
+		RerouteNet rerouteNet = new RerouteNet(creator, rerouter, 0);
 		FlowGenerator flowGen = new FlowGenerator(
 				creator.getNumVertices(),
 				new ExpDistribution(12),

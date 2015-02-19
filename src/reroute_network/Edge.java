@@ -9,10 +9,13 @@ public class Edge extends DefaultWeightedEdge {
 	private static final long serialVersionUID = -7897313466827461675L;
 	final int capacity;
 	int usedCapacity;
-	public int draftUsedCapacity;
+	private final int id;
+	//public int draftUsedCapacity;
 	
-	Edge(int edgeCapacity) {
-		capacity = edgeCapacity;
+	
+	Edge(int capacity, int id) {
+		this.capacity = capacity;
+		this.id = id;
 		usedCapacity = 0;
 	}
 	
@@ -26,5 +29,9 @@ public class Edge extends DefaultWeightedEdge {
 	
 	public int getUsedCapacity() {
 		return usedCapacity;
+	}
+	
+	public int getId() {
+		return id;
 	}
 }

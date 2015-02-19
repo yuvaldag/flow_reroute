@@ -17,16 +17,23 @@ public class PathRerouter {
 		return new Vector<RerouteData>();
 	}
 	
-	void setDraftUsedCapacities(
+	protected int[] getDraftUsedCapacities(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph) {
+		int numEdges = graph.edgeSet().size();
+		int[] draftUsedCapacities = new int[numEdges];
 		for (Edge edge : graph.edgeSet()) {
-			edge.draftUsedCapacity = edge.getUsedCapacity();
+			draftUsedCapacities[edge.getId()] = edge.getUsedCapacity();
 		}
+		
+		return draftUsedCapacities;
 	}
 	
-	void changeUsedCapacityDraft(GraphPath<Vertex,Edge> path, int change) {
+	protected void changeDraftUsedCapacities(
+			GraphPath<Vertex,Edge> path,
+			int change,
+			int[] draftUsedCapacities) {
 		for (Edge e : path.getEdgeList()) {
-			e.draftUsedCapacity += change;
+			draftUsedCapacities[e.getId()] += change;
 		}
 	}
 }

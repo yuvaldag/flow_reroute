@@ -25,16 +25,20 @@ public class ExpWeightsRerouter extends PathRerouter {
 	}
 	
 	private void setWeights(
-			SimpleDirectedWeightedGraph<Vertex,Edge> graph, int demand) {
+			SimpleDirectedWeightedGraph<Vertex,Edge> graph, int demand,
+			int[] draftUsedCapacities) {
+		
 		for(Edge edge : graph.edgeSet()) {
+			int draftUsedCap = draftUsedCapacities[edge.getId()];
 			double newWeight;
-			if(edge.draftUsedCapacity + demand > edge.getCapacity()) {
+			
+			if(draftUsedCap + demand > edge.getCapacity()) {
 				newWeight = Double.POSITIVE_INFINITY;
 			} else {
 				double costBeforeChange = costFunction(
-						edge.draftUsedCapacity, edge.getCapacity());
+						draftUsedCap, edge.getCapacity());
 				double costAfterChange = costFunction(
-						edge.draftUsedCapacity + demand, edge.getCapacity());
+						draftUsedCap + demand, edge.getCapacity());
 				newWeight = costAfterChange - costBeforeChange;
 			}
 			
@@ -55,14 +59,16 @@ public class ExpWeightsRerouter extends PathRerouter {
 	
 	private RerouteData rerouteOne(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows) {
+			Vector<Flow> consideredFlows,
+			int[] draftUsedCapacities) {
 		double bestImprovement = 0.0;
 		RerouteData bestRerouteData = null;
 		
 		for(Flow flow : consideredFlows) {
-			changeUsedCapacityDraft(flow.getPath(), -flow.getDemand());
+			changeDraftUsedCapacities(
+					flow.getPath(), -flow.getDemand(), draftUsedCapacities);
 
-			setWeights(graph, flow.getDemand());
+			setWeights(graph, flow.getDemand(), draftUsedCapacities);
 			
 			double oldWeight = pathWeight(graph, flow.getPath());
 			
@@ -81,7 +87,8 @@ public class ExpWeightsRerouter extends PathRerouter {
 				bestRerouteData = new RerouteData(flow, shortestPath);
 			}
 			
-			changeUsedCapacityDraft(flow.getPath(), flow.getDemand());
+			changeDraftUsedCapacities(
+					flow.getPath(), flow.getDemand(), draftUsedCapacities);
 		}
 		
 		// TODO: Return null if best improvement is smaller than some epsilon
@@ -94,17 +101,21 @@ public class ExpWeightsRerouter extends PathRerouter {
 			int numReroutes) {
 		Vector<RerouteData> ret = new Vector<RerouteData>();
 		
-		setDraftUsedCapacities(graph);
+		int[] draftUsedCapacities = getDraftUsedCapacities(graph);
 		
 		for(int i = 0; i < numReroutes; i++) {
-			RerouteData newData = rerouteOne(graph, consideredFlows);
+			RerouteData newData = rerouteOne(
+					graph, consideredFlows, draftUsedCapacities);
 			if (newData == null)
 				return ret;
 
 			ret.add(newData);
-			changeUsedCapacityDraft(
-					newData.flow.getPath(), -newData.flow.getDemand());
-			changeUsedCapacityDraft(newData.newPath, newData.flow.getDemand());
+			changeDraftUsedCapacities(
+					newData.flow.getPath(), -newData.flow.getDemand(),
+					draftUsedCapacities);
+			changeDraftUsedCapacities(
+					newData.newPath, newData.flow.getDemand(),
+					draftUsedCapacities);
 		}
 
 		return ret;
