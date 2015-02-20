@@ -10,11 +10,10 @@ import reroute_network.Flow;
 import reroute_network.Vertex;
 
 public class PathRerouter {
-	public Vector<RerouteData> reroute(
+	public RerouteData reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows,
-			int numReroutes) {
-		return new Vector<RerouteData>();
+			Vector<Flow> consideredFlows) {
+		return null;
 	}
 	
 	protected int[] getDraftUsedCapacities(

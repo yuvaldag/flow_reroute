@@ -15,6 +15,7 @@ public class RunOneConfiguration {
 	final private FlowGenerator flowGen;
 	final private PriorityQueue<Event> events;
 	final private Vector<String> trace;
+	final private Vector<Boolean> errors;
 	private int nextFlowId;
 	
 	RunOneConfiguration(
@@ -32,8 +33,10 @@ public class RunOneConfiguration {
 		
 		if (getTrace) {
 			trace = new Vector<String>();
+			errors = new Vector<Boolean>();
 		} else {
 			trace = null;
+			errors = null;
 		}
 		
 		this.nextFlowId = 0;
@@ -62,6 +65,12 @@ public class RunOneConfiguration {
 		}
 	}
 	
+	private void addErr(boolean err) {
+		if (errors != null) {
+			errors.addElement(err);
+		}
+	}
+	
 	double run() throws RerouteNetException, DefaultPathRouterException {
 		int flowsAddedSuccessfully = 0;
 		int flowsFailedToAdd = 0;
@@ -82,12 +91,14 @@ public class RunOneConfiguration {
 				
 				if (result) {
 					flowsAddedSuccessfully += 1;
+					addErr(false);
 					FlowEndEvent flowEnd = new FlowEndEvent(
 							flowStart.timestamp + flowStart.duration,
 							flowStart.id);
 					events.add(flowEnd);
 				} else {
 					flowsFailedToAdd += 1;
+					addErr(true);
 					addTrace("event failed to add");
 				} 
 	
@@ -113,6 +124,23 @@ public class RunOneConfiguration {
 	public void printTrace() {
 		for (String line : trace) {
 			System.out.println(line);
+		}
+	}
+	
+	public void printErrs(int clusterLen) {
+		int failed = 0;
+		int total = 0;
+		for (boolean err : errors) {
+			if (err) {
+				failed += 1;
+			}
+			
+			total += 1;
+			
+			if (total % clusterLen == 0) {
+				System.out.println("round: " + total + " err: " +
+						((double)failed) / total);
+			}
 		}
 	}
 }

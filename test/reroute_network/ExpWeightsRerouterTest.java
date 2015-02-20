@@ -71,7 +71,7 @@ public class ExpWeightsRerouterTest {
 					NetworkExample.networkNonEqualsMsg(actual, expected),
 					expected.equals(actual));
 		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException | tooManyReroutingsException |
+					IllegalNodeException |
 					IllegalPathException | NotEnoughCapacityException |
 					DefaultPathRouterException e) {
 			fail();
@@ -96,7 +96,7 @@ public class ExpWeightsRerouterTest {
 			actualNet.addFlow(3, 1, 2, 1);
 			actualNet.rerouteFlows();
 		} catch (FlowExistsException | NegativeDemandException |
-				  IllegalNodeException | tooManyReroutingsException |
+				  IllegalNodeException |
 				  IllegalPathException | NotEnoughCapacityException | 
 				  DefaultPathRouterException e) {
 			e.printStackTrace();
@@ -118,7 +118,7 @@ public class ExpWeightsRerouterTest {
 		
 		try {
 			actualNet.rerouteFlows();
-		} catch (tooManyReroutingsException | IllegalPathException
+		} catch (IllegalPathException
 				| NotEnoughCapacityException e) {
 			e.printStackTrace();
 			fail();

@@ -22,26 +22,28 @@ public class DoTest {
 					PathRerouterException, DefaultPathRouterException {
 		GraphCreator creator = ParseBrite.parse(
 				"config_files/test/parsing/parse_brite/tmp_net.brite");
-		PathRerouter rerouter = 
-				//new NonumiformMultiplierCostRerouter(
-				//		8.0, 0., 0.0, creator.getNumEdges());
-				new ExpWeightsRerouter(8.0);
-		RerouteNet rerouteNet = new RerouteNet(creator, rerouter, 5);
+		NonumiformMultiplierCostRerouter rerouter = 
+				new NonumiformMultiplierCostRerouter(
+						5.0, 0., 0.0, creator.getNumEdges());
+				//new ExpWeightsRerouter(8.0);
+		RerouteNet rerouteNet = new RerouteNet(creator, rerouter, 0);
 		FlowGenerator flowGen = new FlowGenerator(
 				creator.getNumVertices(),
-				new ExpDistribution(12),
-				new ZipfDistribution(2, 8.0, Double.POSITIVE_INFINITY),
-				//new ConstantDistribution(25),
-
-				new ZipfDistribution(2, 40.0, 1000),
-				//new ConstantDistribution(100),
-
+				new ExpDistribution(20),
+				
+				// duration
+				new ZipfDistribution(2, 8.0, 150),
+				
+				// demand
+				new ZipfDistribution(2, 20., 500.1),
 				45325903);
 
 		RunOneConfiguration oneConfig = new RunOneConfiguration(
-				rerouteNet, flowGen, 5.0, 2000, true);
+				rerouteNet, flowGen, 5.0, 50000, true);
 		double result = oneConfig.run();
 		//oneConfig.printTrace();
+		//rerouter.printMultipliers();
+		oneConfig.printErrs(2000);
 		System.out.println(result);
 	}
 }

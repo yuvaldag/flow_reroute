@@ -55,7 +55,7 @@ public class DefaultPathRouterTest {
 			e.printStackTrace();
 			fail();
 		}
-		
+
 		try {
 			actualNet.removeFlow(0);
 		} catch (FlowNotExistsException e) {
@@ -66,7 +66,7 @@ public class DefaultPathRouterTest {
 		assertTrue(
 				NetworkExample.networkNonEqualsMsg(actual, expected),
 				actual.equals(expected));
-		
+
 		try {
 			actualNet.addFlow(0, 1, 2, 5);
 		} catch (FlowExistsException | NegativeDemandException |
@@ -78,7 +78,7 @@ public class DefaultPathRouterTest {
 		assertTrue(
 				NetworkExample.networkNonEqualsMsg(actual, expected),
 				actual.equals(expected));
-		
+
 		try {
 			actualNet.removeFlow(1);
 		} catch (FlowNotExistsException e) {

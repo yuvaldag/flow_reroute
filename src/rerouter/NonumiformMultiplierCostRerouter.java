@@ -89,15 +89,26 @@ public class NonumiformMultiplierCostRerouter extends ExpWeightsRerouter {
 			return;
 		}
 
-		int minFreeSlot = Integer.MAX_VALUE;
-		Edge minCapEdge = null;
+		//int minFreeSlot = Integer.MAX_VALUE;
+		//Edge minCapEdge = null;
 		for (Edge e : path.getEdgeList()) {
-			if (e.getCapacity() - e.getUsedCapacity() < minFreeSlot) {
-				minCapEdge = e;
-				minFreeSlot = e.getCapacity() - e.getUsedCapacity();
+			//if (e.getCapacity() - e.getUsedCapacity() < minFreeSlot) {
+			//	minCapEdge = e;
+			//	minFreeSlot = e.getCapacity() - e.getUsedCapacity();
+			//}
+			if (e.getCapacity() - e.getUsedCapacity() < demand) {
+				blockedFlows[e.getId()] = true;
 			}
+			
 		}
 
-		blockedFlows[minCapEdge.getId()] = true;
+		//blockedFlows[minCapEdge.getId()] = true;
+	}
+	
+	public void printMultipliers() {
+		for (int i = 0; i < edgeMultipliers.length; i++) {
+			System.out.println(
+					"" + i + " " + edgeMultipliers[i] + " " + updates[i]);
+		}
 	}
 }

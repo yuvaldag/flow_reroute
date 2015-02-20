@@ -118,31 +118,14 @@ public class ExpWeightsRerouter extends PathRerouter {
 	}
 	
 	@Override
-	public Vector<RerouteData> reroute(
+	public RerouteData reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows,
-			int numReroutes) {
-		Vector<RerouteData> ret = new Vector<RerouteData>();
+			Vector<Flow> consideredFlows) {
 		
 		int[] draftUsedCapacities = getDraftUsedCapacities(graph);
 		
 		preRerouting();
-		
-		for(int i = 0; i < numReroutes; i++) {
-			RerouteData newData = rerouteOne(
-					graph, consideredFlows, draftUsedCapacities);
-			if (newData == null)
-				return ret;
 
-			ret.add(newData);
-			changeDraftUsedCapacities(
-					newData.flow.getPath(), -newData.flow.getDemand(),
-					draftUsedCapacities);
-			changeDraftUsedCapacities(
-					newData.newPath, newData.flow.getDemand(),
-					draftUsedCapacities);
-		}
-
-		return ret;
+		return rerouteOne(graph, consideredFlows, draftUsedCapacities);
 	}
 }

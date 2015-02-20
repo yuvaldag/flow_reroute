@@ -131,31 +131,29 @@ public class RerouteNet {
 	/*
 	 * Calls a stage of re-routing.
 	 */
-	@SuppressWarnings("unchecked")
 	public void rerouteFlows()
-			throws tooManyReroutingsException, IllegalPathException,
-					NotEnoughCapacityException {
-		Vector<RerouteData> dataOfFlows = pathRerouter.reroute(
-				(SimpleDirectedWeightedGraph<Vertex, Edge>)graph.clone(),
-				getElephantFlows(),
-				numAllowedReroutings);
+			throws IllegalPathException, NotEnoughCapacityException {
+		for (int i = 0; i < numAllowedReroutings; i++) { 
+			RerouteData flowData = pathRerouter.reroute(
+					graph,
+					getElephantFlows());
 		
-		if (dataOfFlows.size() > numAllowedReroutings)
-			throw new tooManyReroutingsException();
-		
-		for (RerouteData dataOfFlow : dataOfFlows) {
-			GraphPath<Vertex,Edge> oldPath = dataOfFlow.flow.path;
-			validatePath(dataOfFlow.newPath, oldPath.getStartVertex(), 
+			if (flowData == null) {
+				return;
+			}
+			
+			GraphPath<Vertex,Edge> oldPath = flowData.flow.path;
+			validatePath(flowData.newPath, oldPath.getStartVertex(), 
 							oldPath.getEndVertex());
 
-			removeFlowFromNet(dataOfFlow.flow);
-			if (!flowInsertable(dataOfFlow.newPath, dataOfFlow.flow.demand)) {
-				addFlowToNet(dataOfFlow.flow);
+			removeFlowFromNet(flowData.flow);
+			if (!flowInsertable(flowData.newPath, flowData.flow.demand)) {
+				addFlowToNet(flowData.flow);
 				throw new NotEnoughCapacityException();
 			}
 			
-			dataOfFlow.flow.path = dataOfFlow.newPath;
-			addFlowToNet(dataOfFlow.flow);
+			flowData.flow.path = flowData.newPath;
+			addFlowToNet(flowData.flow);
 		}
 	}
 
