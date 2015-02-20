@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import flow_generator.FlowGenerator;
 import flow_generator.FlowInfo;
+import reroute_network.DefaultPathRouterException;
 import reroute_network.RerouteNet;
 import reroute_network.RerouteNetException;
 
@@ -61,7 +62,7 @@ public class RunOneConfiguration {
 		}
 	}
 	
-	double run() throws RerouteNetException {
+	double run() throws RerouteNetException, DefaultPathRouterException {
 		int flowsAddedSuccessfully = 0;
 		int flowsFailedToAdd = 0;
 		

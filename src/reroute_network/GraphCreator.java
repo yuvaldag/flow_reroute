@@ -64,6 +64,10 @@ public class GraphCreator extends Object {
 		return numVertices;
 	}
 	
+	public int getNumEdges() {
+		return edgeData.size();
+	}
+	
 	public String toString() {
 		GraphData data = createGraph();
 		return data.graph.toString();

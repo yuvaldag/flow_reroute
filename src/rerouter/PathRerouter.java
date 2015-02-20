@@ -36,4 +36,10 @@ public class PathRerouter {
 			draftUsedCapacities[e.getId()] += change;
 		}
 	}
+	
+	public void newFlow( 
+			GraphPath<Vertex, Edge> path, 
+			int demand,
+			boolean addedSuccessfully) {
+	}
 }

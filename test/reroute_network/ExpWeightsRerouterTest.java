@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import rerouter.ExpWeightsRerouter;
+import rerouter.PathRerouterException;
 
 public class ExpWeightsRerouterTest {
 	
@@ -16,7 +17,7 @@ public class ExpWeightsRerouterTest {
 	 * 		- That trying to reroute when we shouldn't goes fine
 	 * 		- Check what happens when there are 2 reroute possibilities
 	 */
-	public void testReroute() {
+	public void testReroute() throws PathRerouterException {
 		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(10.0);
 		NetworkExample1 expected = new NetworkExample1();
 		NetworkExample1 actual = new NetworkExample1();
@@ -71,13 +72,14 @@ public class ExpWeightsRerouterTest {
 					expected.equals(actual));
 		} catch (FlowExistsException | NegativeDemandException |
 					IllegalNodeException | tooManyReroutingsException |
-					IllegalPathException | NotEnoughCapacityException e) {
+					IllegalPathException | NotEnoughCapacityException |
+					DefaultPathRouterException e) {
 			fail();
 		}
 	}
 
 	@Test
-	public void testRerouteMultipleFlows() {
+	public void testRerouteMultipleFlows() throws PathRerouterException {
 		// TODO: add a test for re-routing multiple flows at once
 		// TODO: see what happens when the demands are greater than one 
 		ExpWeightsRerouter rerouter = new ExpWeightsRerouter(10.0);
@@ -95,7 +97,8 @@ public class ExpWeightsRerouterTest {
 			actualNet.rerouteFlows();
 		} catch (FlowExistsException | NegativeDemandException |
 				  IllegalNodeException | tooManyReroutingsException |
-				  IllegalPathException | NotEnoughCapacityException e) {
+				  IllegalPathException | NotEnoughCapacityException | 
+				  DefaultPathRouterException e) {
 			e.printStackTrace();
 			fail();
 		}

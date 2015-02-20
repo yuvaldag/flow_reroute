@@ -13,15 +13,29 @@ import reroute_network.Vertex;
 public class ExpWeightsRerouter extends PathRerouter {
 	final double expParam;
 	
-	public ExpWeightsRerouter(double expParam) {
+	public ExpWeightsRerouter(double expParam) throws PathRerouterException {
+		if (expParam <= 0.0) {
+			throw new PathRerouterException("Exp param has to be nonnegative" +
+					" but its value was " + expParam);
+		}
+		
 		this.expParam = expParam;
 	}
 
-	double costFunction(int usedCapacity, int totalCapacity) {
+	double expValue(Edge edge, int usedCapacity) {
 		// TODO: make it faster. Maybe by calculating values of exp(-x)
 		// 		 beforehand for different values of x.
 		return Math.exp(
-				-expParam * (totalCapacity - usedCapacity) / totalCapacity);
+					-expParam * (edge.getCapacity() - usedCapacity) / 
+					edge.getCapacity());
+	}
+	
+	double edgeCostMultiplierDerrivative(Edge edge, int usedCapacity) {
+		return expValue(edge, usedCapacity);
+	}
+	
+	double costFunction(Edge edge, int usedCapacity) {		
+		return edgeCostMultiplier(edge) * expValue(edge, usedCapacity);
 	}
 	
 	private void setWeights(
@@ -36,14 +50,18 @@ public class ExpWeightsRerouter extends PathRerouter {
 				newWeight = Double.POSITIVE_INFINITY;
 			} else {
 				double costBeforeChange = costFunction(
-						draftUsedCap, edge.getCapacity());
+						edge, draftUsedCap);
 				double costAfterChange = costFunction(
-						draftUsedCap + demand, edge.getCapacity());
+						edge, draftUsedCap + demand);
 				newWeight = costAfterChange - costBeforeChange;
 			}
 			
 			graph.setEdgeWeight(edge, newWeight);
 		}
+	}
+	
+	double edgeCostMultiplier(Edge edge) {
+		return 1.0;
 	}
 	
 	private double pathWeight(
@@ -94,7 +112,12 @@ public class ExpWeightsRerouter extends PathRerouter {
 		// TODO: Return null if best improvement is smaller than some epsilon
 		return bestRerouteData;
 	}
-
+	
+	void preRerouting() {
+		
+	}
+	
+	@Override
 	public Vector<RerouteData> reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
 			Vector<Flow> consideredFlows,
@@ -102,6 +125,8 @@ public class ExpWeightsRerouter extends PathRerouter {
 		Vector<RerouteData> ret = new Vector<RerouteData>();
 		
 		int[] draftUsedCapacities = getDraftUsedCapacities(graph);
+		
+		preRerouting();
 		
 		for(int i = 0; i < numReroutes; i++) {
 			RerouteData newData = rerouteOne(

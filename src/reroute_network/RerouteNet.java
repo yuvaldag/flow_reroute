@@ -47,7 +47,7 @@ public class RerouteNet {
 	 */
 	public boolean addFlow(int id, int source, int target, int demand)
 			throws FlowExistsException, NegativeDemandException,
-					IllegalNodeException {
+					IllegalNodeException, DefaultPathRouterException {
 		if (flows.containsKey(id))
 			throw new FlowExistsException();
 
@@ -61,13 +61,25 @@ public class RerouteNet {
 		GraphPath<Vertex,Edge> path;
 		path = defaultPathRouter.findDefaultPath(
 				graph, demand, vertices.get(source), vertices.get(target));
-		if(path == null)
-			return false;
+		
+		boolean retVal = true;
+		
+		for(Edge edge : path.getEdgeList()) {
+			if(edge.capacity - edge.usedCapacity < demand) {
+				retVal = false;
+				break;
+			}
+		}
 
-		Flow flow = new Flow(path, demand);
-		flows.put(id, flow);
-		addFlowToNet(flow);
-		return true;
+		if (retVal) {
+			Flow flow = new Flow(path, demand);
+			flows.put(id, flow);
+			addFlowToNet(flow);
+		}
+		
+		pathRerouter.newFlow(path, demand, retVal);
+		
+		return retVal;
 	}
 
 	/*

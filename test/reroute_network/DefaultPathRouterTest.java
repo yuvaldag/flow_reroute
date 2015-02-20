@@ -19,7 +19,7 @@ public class DefaultPathRouterTest {
 		try {
 			assertTrue(actualNet.addFlow(0, 1, 2, 1));
 		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException e) {
+					IllegalNodeException | DefaultPathRouterException e) {
 			fail();
 		}
 		expected.e12.usedCapacity += 1;
@@ -30,16 +30,15 @@ public class DefaultPathRouterTest {
 		try {
 			assertFalse(actualNet.addFlow(1, 1, 2, 5));
 		} catch (FlowExistsException | NegativeDemandException | 
-					IllegalNodeException e) {
+					IllegalNodeException | DefaultPathRouterException e) {
 			e.printStackTrace();
 			fail();
 		}
 		
 		try {
-			assertTrue(actualNet.addFlow(
-					1, 2, 3, 2));
+			assertTrue(actualNet.addFlow(1, 2, 3, 2));
 		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException e) {
+					IllegalNodeException | DefaultPathRouterException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -52,7 +51,7 @@ public class DefaultPathRouterTest {
 		try {
 			assertFalse(actualNet.addFlow(2, 1, 3, 10));
 		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException e) {
+					IllegalNodeException | DefaultPathRouterException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -71,7 +70,7 @@ public class DefaultPathRouterTest {
 		try {
 			actualNet.addFlow(0, 1, 2, 5);
 		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException e) {
+					IllegalNodeException | DefaultPathRouterException e) {
 			e.printStackTrace();
 			fail();
 		}

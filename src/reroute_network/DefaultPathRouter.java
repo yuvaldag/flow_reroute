@@ -20,26 +20,26 @@ abstract class DefaultPathRouter {
 	 */
 	abstract GraphPath<Vertex,Edge> findDefaultPath(
 			SimpleDirectedWeightedGraph<Vertex, Edge> graph, int demand,
-			Vertex startVertex, Vertex endVertex);
+			Vertex startVertex, Vertex endVertex)
+				throws DefaultPathRouterException;
 }
 
 class ShortestPathDefaultRouter extends DefaultPathRouter {
 	// TODO: use a more compact way to save the shortest paths
 	HashMap<VertexPair<Vertex>,GraphPath<Vertex,Edge>> allShortestPaths;
 
+	@Override
 	GraphPath<Vertex,Edge> findDefaultPath(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			int demand, Vertex startVertex, Vertex endVertex){
+			int demand, Vertex startVertex, Vertex endVertex)
+					throws DefaultPathRouterException{
 		VertexPair<Vertex> vPair = new VertexPair<Vertex>(
 				startVertex, endVertex);
 
 		GraphPath<Vertex,Edge> candidatePath = allShortestPaths.get(vPair);
 		if(candidatePath == null)
-			return null;
-		for(Edge edge : candidatePath.getEdgeList()) {
-			if(edge.capacity - edge.usedCapacity < demand)
-				return null;
-		}
+			throw new DefaultPathRouterException(
+					"no default path found between the two vertices");
 
 		return candidatePath;
 	}
