@@ -26,7 +26,7 @@ public class PathRerouter {
 		
 		return draftUsedCapacities;
 	}
-	
+
 	protected void changeDraftUsedCapacities(
 			GraphPath<Vertex,Edge> path,
 			int change,
@@ -35,10 +35,19 @@ public class PathRerouter {
 			draftUsedCapacities[e.getId()] += change;
 		}
 	}
-	
+
 	public void newFlow( 
 			GraphPath<Vertex, Edge> path, 
 			int demand,
 			boolean addedSuccessfully) {
+	}
+	
+	public void prepareReroute() {
+	}
+	
+	public void endReroute(SimpleDirectedWeightedGraph<Vertex, Edge> graph) {
+	}
+	
+	public void printParams() {
 	}
 }

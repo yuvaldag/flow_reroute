@@ -10,23 +10,15 @@ import reroute_network.Edge;
 import reroute_network.Flow;
 import reroute_network.Vertex;
 
-public class ExpWeightsRerouter extends PathRerouter {
-	final double expParam;
-	
-	public ExpWeightsRerouter(double expParam) throws PathRerouterException {
-		if (expParam <= 0.0) {
-			throw new PathRerouterException("Exp param has to be nonnegative" +
-					" but its value was " + expParam);
-		}
-		
-		this.expParam = expParam;
+public abstract class ExpWeightsRerouter extends PathRerouter {	
+	public ExpWeightsRerouter() throws PathRerouterException {
 	}
 
 	double expValue(Edge edge, int usedCapacity) {
 		// TODO: make it faster. Maybe by calculating values of exp(-x)
 		// 		 beforehand for different values of x.
 		return Math.exp(
-					-expParam * (edge.getCapacity() - usedCapacity) / 
+					-edgeExpParam(edge) * (edge.getCapacity() - usedCapacity) / 
 					edge.getCapacity());
 	}
 	
@@ -59,11 +51,11 @@ public class ExpWeightsRerouter extends PathRerouter {
 			graph.setEdgeWeight(edge, newWeight);
 		}
 	}
-	
-	double edgeCostMultiplier(Edge edge) {
-		return 1.0;
-	}
-	
+
+	abstract double edgeCostMultiplier(Edge edge);
+
+	abstract double edgeExpParam(Edge edge);
+
 	private double pathWeight(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
 			GraphPath<Vertex,Edge> path) {
@@ -112,19 +104,13 @@ public class ExpWeightsRerouter extends PathRerouter {
 		// TODO: Return null if best improvement is smaller than some epsilon
 		return bestRerouteData;
 	}
-	
-	void preRerouting() {
-		
-	}
-	
+
 	@Override
 	public RerouteData reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
 			Vector<Flow> consideredFlows) {
 		
 		int[] draftUsedCapacities = getDraftUsedCapacities(graph);
-		
-		preRerouting();
 
 		return rerouteOne(graph, consideredFlows, draftUsedCapacities);
 	}

@@ -133,6 +133,8 @@ public class RerouteNet {
 	 */
 	public void rerouteFlows()
 			throws IllegalPathException, NotEnoughCapacityException {
+		pathRerouter.prepareReroute();
+		
 		for (int i = 0; i < numAllowedReroutings; i++) { 
 			RerouteData flowData = pathRerouter.reroute(
 					graph,
@@ -155,6 +157,8 @@ public class RerouteNet {
 			flowData.flow.path = flowData.newPath;
 			addFlowToNet(flowData.flow);
 		}
+		
+		pathRerouter.endReroute(graph);
 	}
 
 	private void addFlowToNet(Flow flow) {

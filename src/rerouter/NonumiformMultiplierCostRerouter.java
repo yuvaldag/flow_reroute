@@ -7,7 +7,7 @@ import org.jgrapht.GraphPath;
 import reroute_network.Edge;
 import reroute_network.Vertex;
 
-public class NonumiformMultiplierCostRerouter extends ExpWeightsRerouter {
+public class NonumiformMultiplierCostRerouter extends SimpleExpWeightsRerouter {
 	private final double[] edgeMultipliers;
 	private final double[] updates;
 	private final boolean[] blockedFlows;
@@ -62,7 +62,7 @@ public class NonumiformMultiplierCostRerouter extends ExpWeightsRerouter {
 	}
 	
 	@Override
-	void preRerouting() {
+	public void prepareReroute() {
 		for (int i = 0; i < blockedFlows.length; i++) {
 			updates[i] = smoothFactor * updates[i];
 			if (blockedFlows[i]) {
@@ -85,24 +85,16 @@ public class NonumiformMultiplierCostRerouter extends ExpWeightsRerouter {
 			GraphPath<Vertex, Edge> path,
 			int demand,
 			boolean addedSuccessfully) {
+		
 		if (addedSuccessfully) {
 			return;
 		}
 
-		//int minFreeSlot = Integer.MAX_VALUE;
-		//Edge minCapEdge = null;
 		for (Edge e : path.getEdgeList()) {
-			//if (e.getCapacity() - e.getUsedCapacity() < minFreeSlot) {
-			//	minCapEdge = e;
-			//	minFreeSlot = e.getCapacity() - e.getUsedCapacity();
-			//}
 			if (e.getCapacity() - e.getUsedCapacity() < demand) {
 				blockedFlows[e.getId()] = true;
-			}
-			
+			}	
 		}
-
-		//blockedFlows[minCapEdge.getId()] = true;
 	}
 	
 	public void printMultipliers() {
