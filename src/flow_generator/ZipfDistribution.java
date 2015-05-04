@@ -6,15 +6,18 @@ public class ZipfDistribution implements Distribution {
 	private final double power;
 	private final double minVal;
 	private final double maxVal;
+	private final double multiplicationFactor;
 	
 	public ZipfDistribution(final double power)
 			throws ZipfException {
-		this(power, 1.0, Double.POSITIVE_INFINITY);
+		this(power, 1.0, Double.POSITIVE_INFINITY, 1);
 	}
 	
 	public ZipfDistribution(
-			final double power, final double minVal,
-			final double maxVal)
+			final double power, 
+			final double minVal,
+			final double maxVal,
+			final double multiplicationFactor)
 					throws ZipfException {
 		if (power <= 1.0)
 			throw new ZipfException(
@@ -37,9 +40,14 @@ public class ZipfDistribution implements Distribution {
 					"minimal");
 		}
 		
+		if (multiplicationFactor <= 0) {
+			throw new ZipfException("negative multiplication factor");
+		}
+		
 		this.power = power;
 		this.maxVal = maxVal;
 		this.minVal = minVal;
+		this.multiplicationFactor = multiplicationFactor;
 	}
 
 	@Override
@@ -49,6 +57,6 @@ public class ZipfDistribution implements Distribution {
 		final double sample = randomGen.nextDouble();
 		final double formula = minPowered - sample * (minPowered - maxPowered);
 		
-		return Math.pow(formula, 1 / (-power + 1));
+		return Math.pow(formula, 1 / (-power + 1)) * multiplicationFactor;
 	}
 }

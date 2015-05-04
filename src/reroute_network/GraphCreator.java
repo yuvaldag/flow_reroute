@@ -9,13 +9,12 @@ import reroute_network.Edge;
 
 class GraphData {
 	final SimpleDirectedWeightedGraph<Vertex, Edge> graph;
-	final Vector<Vertex> vertices;
-	
+	final Vector<Vertex> generatingVertices;
 	GraphData(
 			SimpleDirectedWeightedGraph<Vertex, Edge> graph,
 			Vector<Vertex> vertices) {
 		this.graph = graph;
-		this.vertices = vertices;
+		this.generatingVertices = vertices;
 	}
 }
 
@@ -25,11 +24,15 @@ class GraphData {
 public class GraphCreator extends Object {
 	private final int numVertices;
 	private final Vector<EdgeData> edgeData;
-
+	private final int genVerticesVsOther;
+	
 	public GraphCreator(
-			final int numVertices, final Vector<EdgeData> edgeData) {
+			final int numVertices, 
+			final Vector<EdgeData> edgeData,
+			final int genVerticesVsOther) {
 		this.numVertices = numVertices;
 		this.edgeData = new Vector<EdgeData>(edgeData);
+		this.genVerticesVsOther = genVerticesVsOther;
 	}
 	
 	/*
@@ -57,11 +60,23 @@ public class GraphCreator extends Object {
 					edge);
 		}
 		
-		return new GraphData(graph, vertices);
+		Vector<Vertex> generatingVertices = new Vector<Vertex>();
+		
+		for (int i = 0; i < vertices.size(); i += genVerticesVsOther) {
+			generatingVertices.addElement(vertices.get(i));
+		}
+
+		return new GraphData(graph, generatingVertices);
 	}
 	
-	public int getNumVertices() {
-		return numVertices;
+	public int getNumGenVertices() {
+		int numGenVertices = numVertices / genVerticesVsOther;
+		
+		if (numVertices % genVerticesVsOther > 0) {
+			numGenVertices += 1;
+		}
+		
+		return numGenVertices;
 	}
 	
 	public int getNumEdges() {

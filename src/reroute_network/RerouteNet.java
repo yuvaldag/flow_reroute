@@ -1,39 +1,60 @@
 package reroute_network;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.jgrapht.GraphPath;
+import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
+import org.jgrapht.util.VertexPair;
 
 import rerouter.PathRerouter;
 import rerouter.RerouteData;
 
 public class RerouteNet {
 	final SimpleDirectedWeightedGraph<Vertex, Edge> graph;
-	final Vector<Vertex> vertices;
+	final Vector<Vertex> generatingVertices;
 	final HashMap<Integer, Flow> flows;
-	final DefaultPathRouter defaultPathRouter;
 	final PathRerouter pathRerouter;
 	final int numAllowedReroutings;
+	private final HashMap<VertexPair<Vertex>, Channel> defaultChannels;
+	private final HashSet<Channel> otherChannels;
+	private final HashSet<Channel> allHistoryChannels;
+	private int totalNumEndedFlows;
+	private int totalNumFlowsReroutings;
+	private final KeepDefaultPath keepDefaultPath;
 	
 	RerouteNet(
 			final GraphData graphData,
 			final PathRerouter pathRerouter,
-			final int numAllowedReroutings) {
+			final int numAllowedReroutings,
+			final KeepDefaultPath keepDefaultPath) {
 		this.graph = graphData.graph;
-		this.vertices = graphData.vertices;
+		this.generatingVertices = graphData.generatingVertices;
 		this.pathRerouter = pathRerouter;
 		this.numAllowedReroutings = numAllowedReroutings;
 		this.flows = new HashMap<Integer,Flow>();
-		this.defaultPathRouter = new ShortestPathDefaultRouter(graph);
+		this.defaultChannels = getDefaultChannels();
+		this.otherChannels = new HashSet<Channel>();
+		this.keepDefaultPath = keepDefaultPath;
+		this.allHistoryChannels = new HashSet<Channel>(
+				this.defaultChannels.values());
+		this.totalNumEndedFlows = 0;
+		this.totalNumFlowsReroutings = 0;
 	}
 	
 	public RerouteNet(
 			final GraphCreator graphCreator,
 			final PathRerouter pathRerouter,
-			final int numAllowedReroutings) {
-		this(graphCreator.createGraph(), pathRerouter, numAllowedReroutings);
+			final int numAllowedReroutings,
+			final KeepDefaultPath keepDefaultPath) {
+		this(graphCreator.createGraph(),
+				pathRerouter,
+				numAllowedReroutings,
+				keepDefaultPath);
 	}
 
 	/*
@@ -55,31 +76,28 @@ public class RerouteNet {
 			throw new NegativeDemandException();
 
 		if (source < 0 || target < 0 ||
-				source >= vertices.size() || target >= vertices.size())
+				source >= generatingVertices.size() || 
+				target >= generatingVertices.size())
 			throw new IllegalNodeException();
 		
-		GraphPath<Vertex,Edge> path;
-		path = defaultPathRouter.findDefaultPath(
-				graph, demand, vertices.get(source), vertices.get(target));
+		VertexPair<Vertex> pathVertexPair = new VertexPair<Vertex>(
+					generatingVertices.get(source), 
+					generatingVertices.get(target));
+		Channel channel = defaultChannels.get(pathVertexPair);
 		
-		boolean retVal = true;
-		
-		for(Edge edge : path.getEdgeList()) {
-			if(edge.capacity - edge.usedCapacity < demand) {
-				retVal = false;
-				break;
-			}
+		if (! flowInsertable(channel.getPath(), demand)) {
+			pathRerouter.newFlow(channel.getPath(), demand, false);
+			return false;
 		}
 
-		if (retVal) {
-			Flow flow = new Flow(path, demand);
-			flows.put(id, flow);
-			addFlowToNet(flow);
-		}
+		Flow flow = new Flow(channel, demand, channel.getNumRerouted());
+		flows.put(id, flow);
+		channel.addDemand(demand);
+		addFlowToNet(channel.getPath(), demand);
 		
-		pathRerouter.newFlow(path, demand, retVal);
+		pathRerouter.newFlow(channel.getPath(), demand, true);
 		
-		return retVal;
+		return true;
 	}
 
 	/*
@@ -91,8 +109,25 @@ public class RerouteNet {
 		if(! flows.containsKey(id))
 			throw new FlowNotExistsException();
 
-		removeFlowFromNet(flows.get(id));
-
+		Flow flow = flows.get(id);
+		Channel channel = flow.channel;
+		channel.reduceDemand(flow.demand);
+		
+		totalNumEndedFlows++;
+		totalNumFlowsReroutings += 
+				channel.getNumRerouted() - flow.numReroutingChannelHad;
+		
+		if (channel.getDemand() == 0) {
+			VertexPair<Vertex> vPair = new VertexPair<Vertex>(
+					channel.getPath().getStartVertex(),
+					channel.getPath().getEndVertex());
+			
+			if (defaultChannels.get(vPair) != channel) {
+				otherChannels.remove(channel);
+			}
+		}
+		
+		removeFlowFromNet(channel.getPath(), flow.demand);
 		flows.remove(id);
 	}
 
@@ -103,7 +138,7 @@ public class RerouteNet {
 	 * 		- The start vertex and end vertex are as expected
 	 */
 	private void validatePath(
-			GraphPath<Vertex,Edge> path, Vertex source, Vertex target)
+			GraphPath<Vertex, Edge> path, Vertex source, Vertex target)
 					throws IllegalPathException {
 		Vertex prevVertex = source;
 		for (Edge e : path.getEdgeList()) {
@@ -119,13 +154,17 @@ public class RerouteNet {
 	}
 	
 	// TODO: Return only elephant flows
-	private Vector<Flow> getElephantFlows() {
-		Vector<Flow> ret = new Vector<Flow>();
-		for (Flow flow : flows.values()) {
-			ret.add(flow);
+	private Vector<Channel> getElephantChannels() {
+		Vector<Channel> allChannels =
+				new Vector<Channel>(defaultChannels.values());
+		
+		if (keepDefaultPath != KeepDefaultPath.KEEP_DEFAULT_MOVE_ONCE) {
+			for (Channel channel : otherChannels) {
+				allChannels.add(channel);
+			}
 		}
 		
-		return ret;
+		return allChannels;
 	}
 	
 	/*
@@ -136,53 +175,128 @@ public class RerouteNet {
 		pathRerouter.prepareReroute();
 		
 		for (int i = 0; i < numAllowedReroutings; i++) { 
-			RerouteData flowData = pathRerouter.reroute(
+			RerouteData rerouteData = pathRerouter.reroute(
 					graph,
-					getElephantFlows());
+					getElephantChannels());
 		
-			if (flowData == null) {
+			if (rerouteData == null) {
 				return;
 			}
 			
-			GraphPath<Vertex,Edge> oldPath = flowData.flow.path;
-			validatePath(flowData.newPath, oldPath.getStartVertex(), 
+			Channel channel = rerouteData.channel;
+			GraphPath<Vertex,Edge> oldPath = channel.getPath();
+			validatePath(rerouteData.newPath, oldPath.getStartVertex(), 
 							oldPath.getEndVertex());
 
-			removeFlowFromNet(flowData.flow);
-			if (!flowInsertable(flowData.newPath, flowData.flow.demand)) {
-				addFlowToNet(flowData.flow);
+			removeFlowFromNet(oldPath, channel.getDemand());
+			
+			if (!flowInsertable(rerouteData.newPath, channel.getDemand())) {
+				addFlowToNet(channel.getPath(), channel.getDemand());
 				throw new NotEnoughCapacityException();
 			}
 			
-			flowData.flow.path = flowData.newPath;
-			addFlowToNet(flowData.flow);
+			channel.reroute(rerouteData.newPath);
+			addFlowToNet(rerouteData.newPath, channel.getDemand());
+			
+			if (keepDefaultPath == KeepDefaultPath.KEEP_DEFAULT ||
+					keepDefaultPath == 
+									KeepDefaultPath.KEEP_DEFAULT_MOVE_ONCE) {
+				VertexPair<Vertex> vPair = new VertexPair<Vertex>( 
+						oldPath.getStartVertex(), oldPath.getEndVertex());
+				
+				if (defaultChannels.get(vPair) == channel) {
+					otherChannels.add(channel);
+					
+					Channel newChannel = new Channel(oldPath);
+					defaultChannels.put(vPair, newChannel);
+					allHistoryChannels.add(newChannel);
+				}
+			}
 		}
-		
+
 		pathRerouter.endReroute(graph);
 	}
 
-	private void addFlowToNet(Flow flow) {
-		for(Edge edge : flow.path.getEdgeList()) {
-			edge.usedCapacity += flow.demand;
+	private void addFlowToNet(GraphPath<Vertex, Edge> path, int demand) {
+		for(Edge edge : path.getEdgeList()) {
+			edge.usedCapacity += demand;
 		}
 	}
 
-	private void removeFlowFromNet(Flow flow) {
-		for(Edge edge : flow.path.getEdgeList()) {
-			edge.usedCapacity -= flow.demand;
+	private void removeFlowFromNet(GraphPath<Vertex, Edge> path, int demand) {
+		for(Edge edge : path.getEdgeList()) {
+			edge.usedCapacity -= demand;
 		}
 	}
-	
+
 	private boolean flowInsertable(GraphPath<Vertex,Edge> path, int demand) {
 		for(Edge edge : path.getEdgeList()) {
 			if(edge.capacity - edge.usedCapacity < demand)
 				return false;
 		}
-		
+
 		return true;
 	}
+
+	HashMap<VertexPair<Vertex>, Channel> getDefaultChannels() {
+		for(Edge edge : graph.edgeSet()) {
+			double weight = 1.0 / edge.capacity;
+			graph.setEdgeWeight(edge, weight);
+		}
 	
-	Edge getEdge(int source, int target) {
-		return graph.getEdge(vertices.get(source), vertices.get(target));
+		FloydWarshallShortestPaths<Vertex,Edge> shortestPaths =
+				new FloydWarshallShortestPaths<Vertex,Edge>(graph);
+		HashMap<VertexPair<Vertex>, Channel> defChannels = new 
+				HashMap<VertexPair<Vertex>, Channel>();
+
+		for(GraphPath<Vertex,Edge> path : shortestPaths.getShortestPaths()) {
+			VertexPair<Vertex> vPair = new VertexPair<Vertex>(
+					path.getStartVertex(), path.getEndVertex());
+
+			if (generatingVertices.contains(vPair.getFirst()) &&
+					generatingVertices.contains(vPair.getSecond())) {
+				Channel channel = new Channel(path);
+				defChannels.put(vPair, channel);
+			}
+		}
+
+		return defChannels;
+	}
+
+	public int getNumChannels() {
+		return defaultChannels.size() + otherChannels.size();
+	}
+
+	public SortedMap<Integer, Integer> getChannelHistogram() {
+		SortedMap<Integer, Integer> histogram = 
+				new TreeMap<Integer, Integer>();
+
+		for (Channel channel : allHistoryChannels) {
+			int numRerouted = channel.getNumRerouted();
+
+			if (histogram.containsKey(numRerouted)) {
+				int count = histogram.get(numRerouted) + 1;
+				histogram.put(numRerouted, count);
+			} else {
+				histogram.put(numRerouted, 1);
+			}
+		}
+
+		return histogram;
+	}
+
+	public double avgReroutingsPerFlow() {
+		return ((double)totalNumFlowsReroutings) / totalNumEndedFlows;
+	}
+	
+	public double getAvgDefaultChanngelLength() {
+		final int num = defaultChannels.values().size();
+		int sum = 0;
+		
+		for (Channel channel : defaultChannels.values()) {
+			sum += channel.getPath().getEdgeList().size();
+		}
+
+		return ((double)sum) / num;
 	}
 }

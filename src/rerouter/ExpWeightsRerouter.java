@@ -1,17 +1,21 @@
 package rerouter;
 
+import java.util.HashSet;
 import java.util.Vector;
 
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
+import reroute_network.Channel;
 import reroute_network.Edge;
-import reroute_network.Flow;
 import reroute_network.Vertex;
 
 public abstract class ExpWeightsRerouter extends PathRerouter {	
-	public ExpWeightsRerouter() throws PathRerouterException {
+	private final Policy policy;
+	
+	public ExpWeightsRerouter(Policy policy) throws PathRerouterException {
+		this.policy = policy;
 	}
 
 	double expValue(Edge edge, int usedCapacity) {
@@ -29,25 +33,44 @@ public abstract class ExpWeightsRerouter extends PathRerouter {
 	double costFunction(Edge edge, int usedCapacity) {		
 		return edgeCostMultiplier(edge) * expValue(edge, usedCapacity);
 	}
-	
+
 	private void setWeights(
-			SimpleDirectedWeightedGraph<Vertex,Edge> graph, int demand,
-			int[] draftUsedCapacities) {
-		
+			SimpleDirectedWeightedGraph<Vertex,Edge> graph, 
+			GraphPath<Vertex, Edge> oldPath,
+			int demand) {
+
+		HashSet<Edge> pathEdges = new HashSet<Edge>(oldPath.getEdgeList());
+
 		for(Edge edge : graph.edgeSet()) {
-			int draftUsedCap = draftUsedCapacities[edge.getId()];
 			double newWeight;
+			int usedCapAfterRemoving;
 			
-			if(draftUsedCap + demand > edge.getCapacity()) {
+			if (pathEdges.contains(edge)) {
+				usedCapAfterRemoving = edge.getUsedCapacity() - demand;
+			} else {
+				usedCapAfterRemoving = edge.getUsedCapacity();
+			}
+			
+			int threshCapacity;
+			
+			if (policy == Policy.MakeBeforeBreak) {
+				threshCapacity = edge.getUsedCapacity();
+			} else if (policy == Policy.BreakBeforeMake) {
+				threshCapacity = usedCapAfterRemoving;
+			} else {
+				throw new RuntimeException();
+			}
+			
+			if(threshCapacity + demand > edge.getCapacity()) {
 				newWeight = Double.POSITIVE_INFINITY;
 			} else {
 				double costBeforeChange = costFunction(
-						edge, draftUsedCap);
+						edge, usedCapAfterRemoving);
 				double costAfterChange = costFunction(
-						edge, draftUsedCap + demand);
+						edge, usedCapAfterRemoving + demand);
 				newWeight = costAfterChange - costBeforeChange;
 			}
-			
+
 			graph.setEdgeWeight(edge, newWeight);
 		}
 	}
@@ -66,24 +89,23 @@ public abstract class ExpWeightsRerouter extends PathRerouter {
 		
 		return sum;
 	}
-	
-	private RerouteData rerouteOne(
+
+	@Override
+	public RerouteData reroute(
 			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows,
-			int[] draftUsedCapacities) {
+			Vector<Channel> consideredChannels) {
+
 		double bestImprovement = 0.0;
 		RerouteData bestRerouteData = null;
 		
-		for(Flow flow : consideredFlows) {
-			changeDraftUsedCapacities(
-					flow.getPath(), -flow.getDemand(), draftUsedCapacities);
+		for(Channel channel : consideredChannels) {
 
-			setWeights(graph, flow.getDemand(), draftUsedCapacities);
+			setWeights(graph, channel.getPath(), channel.getDemand());
 			
-			double oldWeight = pathWeight(graph, flow.getPath());
+			double oldWeight = pathWeight(graph, channel.getPath());
 			
-			Vertex source = flow.getPath().getStartVertex();
-			Vertex target = flow.getPath().getEndVertex();
+			Vertex source = channel.getPath().getStartVertex();
+			Vertex target = channel.getPath().getEndVertex();
 			DijkstraShortestPath<Vertex,Edge> shortestPathObj = 
 					new DijkstraShortestPath<Vertex,Edge>(
 							graph, source, target);
@@ -94,24 +116,11 @@ public abstract class ExpWeightsRerouter extends PathRerouter {
 			
 			if(improvement < bestImprovement) {
 				bestImprovement = improvement;
-				bestRerouteData = new RerouteData(flow, shortestPath);
+				bestRerouteData = new RerouteData(channel, shortestPath);
 			}
-			
-			changeDraftUsedCapacities(
-					flow.getPath(), flow.getDemand(), draftUsedCapacities);
 		}
 		
 		// TODO: Return null if best improvement is smaller than some epsilon
 		return bestRerouteData;
-	}
-
-	@Override
-	public RerouteData reroute(
-			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows) {
-		
-		int[] draftUsedCapacities = getDraftUsedCapacities(graph);
-
-		return rerouteOne(graph, consideredFlows, draftUsedCapacities);
 	}
 }

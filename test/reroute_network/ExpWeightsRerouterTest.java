@@ -25,7 +25,8 @@ public class ExpWeightsRerouterTest {
 		RerouteNet actualNet = new RerouteNet(
 				new GraphData(actual.graph, actual.vertices),
 				rerouter,
-				1);
+				1,
+				true);
 		try {
 			expected.e12.usedCapacity += 1;
 			actualNet.addFlow(0, 1, 2, 1);
@@ -71,12 +72,14 @@ public class ExpWeightsRerouterTest {
 			assertTrue(
 					NetworkExample.networkNonEqualsMsg(actual, expected),
 					expected.equals(actual));
-		} catch (FlowExistsException | NegativeDemandException |
-					IllegalNodeException |
-					IllegalPathException | NotEnoughCapacityException |
-					DefaultPathRouterException e) {
+		} catch (RerouteNetException e) {
+			e.printStackTrace();
 			fail();
-		}
+		} catch (DefaultPathRouterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail();
+		}	
 	}
 
 	@Test
@@ -89,21 +92,22 @@ public class ExpWeightsRerouterTest {
 		RerouteNet actualNet = new RerouteNet(
 				new GraphData(actual.graph, actual.vertices),
 				rerouter,
-				2);
+				2,
+				true);
 		try {
 			actualNet.addFlow(0, 1, 2, 2);
 			actualNet.addFlow(1, 1, 2, 1);
 			actualNet.addFlow(2, 1, 2, 1);
 			actualNet.addFlow(3, 1, 2, 1);
 			actualNet.rerouteFlows();
-		} catch (FlowExistsException | NegativeDemandException |
-				  IllegalNodeException |
-				  IllegalPathException | NotEnoughCapacityException | 
-				  DefaultPathRouterException e) {
+		} catch (RerouteNetException e) {
 			e.printStackTrace();
 			fail();
-		}
-		
+		} catch (DefaultPathRouterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail();
+		}		
 		expected.e12.usedCapacity += 2;
 		
 		expected.e13.usedCapacity += 2;
@@ -119,12 +123,10 @@ public class ExpWeightsRerouterTest {
 		
 		try {
 			actualNet.rerouteFlows();
-		} catch (IllegalPathException
-				| NotEnoughCapacityException e) {
+		} catch (RerouteNetException e) {
 			e.printStackTrace();
 			fail();
-		}
-		
+		}		
 		assertTrue(
 				NetworkExample.networkNonEqualsMsg(actual, expected),
 				expected.equals(actual));

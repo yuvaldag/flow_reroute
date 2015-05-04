@@ -17,10 +17,10 @@ class BadFormatException extends Exception {
 	 * 
 	 */
 	private static final long serialVersionUID = 5038378988507176096L;
-	
+
 	BadFormatException() {
 	}
-	
+
 	BadFormatException(String errorMsg) {
 		super(errorMsg);
 	}
@@ -59,13 +59,13 @@ public final class ParseBrite {
 		
 		String line = iter.next();
 		String[] tokens = line.split("[\t ]+");
-		
+
 		if (tokens.length < 6)
 			throw new BadFormatException(
 					"Not enough tokens in line containing edge. " +
 					"Their number is: " + tokens.length + ". " +
 					"The line equals: " + line);
-		
+
 		try {
 			int source = Integer.parseInt(tokens[1]);
 			int target = Integer.parseInt(tokens[2]);
@@ -76,8 +76,15 @@ public final class ParseBrite {
 			throw new BadFormatException(e.getMessage());
 		}
 	}
-	
+
 	public static GraphCreator parse(String filename) throws IOException {
+		return parse(filename, 1);
+	}
+	
+	public static GraphCreator parse(
+			String filename,
+			int generatingVerticesVsOther) 
+					throws IOException {
 		Vector<EdgeData> allEdgeData = new Vector<EdgeData>();
 		List<String> lines = Files.readAllLines(Paths.get(filename));
 		Iterator<String> iter = lines.iterator();
@@ -99,7 +106,8 @@ public final class ParseBrite {
 					". " +
 					e.getMessage());
 		}
-		
-		return new GraphCreator(numNodes, allEdgeData);
+
+		return new GraphCreator(
+				numNodes, allEdgeData, generatingVerticesVsOther);
 	}
 }

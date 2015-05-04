@@ -17,12 +17,16 @@ public class RunOneConfiguration {
 	final private Vector<String> trace;
 	final private Vector<Boolean> errors;
 	private int nextFlowId;
+	final private double timeToConsiderStat;
+	private int sumChannels;
+	private int numConsideredRerouteRounds;
 	
 	RunOneConfiguration(
 			final RerouteNet rerouteNet,
 			final FlowGenerator flowGen,
 			final double reroutePeriod,
 			final double totalTime,
+			final double timeToConsiderStats,
 			final boolean getTrace) {
 		this.reroutePeriod = reroutePeriod;
 		this.rerouteNet = rerouteNet;
@@ -30,6 +34,8 @@ public class RunOneConfiguration {
 		
 		this.events = new PriorityQueue<Event>();
 		this.events.add(new ExperimentEndEvent(totalTime));
+		
+		this.timeToConsiderStat = timeToConsiderStats;
 		
 		if (getTrace) {
 			trace = new Vector<String>();
@@ -40,6 +46,9 @@ public class RunOneConfiguration {
 		}
 		
 		this.nextFlowId = 0;
+		
+		this.sumChannels = 0;
+		this.numConsideredRerouteRounds = 0;
 	}
 	
 	private void addFlowStartEvent(double currentTime) {
@@ -90,16 +99,21 @@ public class RunOneConfiguration {
 						flowStart.demand);
 				
 				if (result) {
-					flowsAddedSuccessfully += 1;
-					addErr(false);
+					if (event.timestamp >= timeToConsiderStat) {
+						flowsAddedSuccessfully += 1;
+						addErr(false);
+					}
+					
 					FlowEndEvent flowEnd = new FlowEndEvent(
 							flowStart.timestamp + flowStart.duration,
 							flowStart.id);
 					events.add(flowEnd);
 				} else {
-					flowsFailedToAdd += 1;
-					addErr(true);
-					addTrace("event failed to add");
+					if (event.timestamp >= timeToConsiderStat) {
+						flowsFailedToAdd += 1;
+						addErr(true);
+						addTrace("event failed to add");
+					}
 				} 
 	
 				addFlowStartEvent(flowStart.timestamp);
@@ -109,6 +123,11 @@ public class RunOneConfiguration {
 			} else if (event instanceof RerouteEvent) {
 				rerouteNet.rerouteFlows();
 				addRerouteEvent(event.timestamp);
+				
+				if (event.timestamp >= timeToConsiderStat) {
+					this.sumChannels += rerouteNet.getNumChannels();
+					this.numConsideredRerouteRounds += 1;
+				}
 			} else if (event instanceof ExperimentEndEvent) {
 				break;
 			} else {
@@ -142,5 +161,9 @@ public class RunOneConfiguration {
 						((double)failed) / total);
 			}
 		}
+	}
+	
+	public double getAvgChannels() {
+		return ((double)this.sumChannels) / this.numConsideredRerouteRounds;
 	}
 }

@@ -5,14 +5,14 @@ import java.util.Vector;
 import org.jgrapht.GraphPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
+import reroute_network.Channel;
 import reroute_network.Edge;
-import reroute_network.Flow;
 import reroute_network.Vertex;
 
 public class PathRerouter {
 	public RerouteData reroute(
-			SimpleDirectedWeightedGraph<Vertex,Edge> graph,
-			Vector<Flow> consideredFlows) {
+			SimpleDirectedWeightedGraph<Vertex, Edge> graph,
+			Vector<Channel> consideredChannels) {
 		return null;
 	}
 	
