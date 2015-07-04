@@ -15,10 +15,13 @@ import reroute_network.GraphCreator;
 import reroute_network.RerouteNet;
 import reroute_network.RerouteNetException;
 import reroute_network.KeepDefaultPath;
-import rerouter.PathRerouter;
+import rerouter.ExpWeightsRerouter;
+//import rerouter.PathRerouter;
 import rerouter.PathRerouterException;
 import rerouter.Policy;
+import rerouter.LimitedChannelsPolicy;
 import rerouter.SimpleExpWeightsRerouter;
+import rerouter.TopChannelsPolicy;
 
 public class DoTest {
 
@@ -50,10 +53,40 @@ public class DoTest {
 		} else {
 			throw new RuntimeException();
 		}
-		
+
 		int numGraph = Integer.parseInt(args[4]);
 		double expParam = Double.parseDouble(args[5]);
 		int reroutingsPerInvocation = Integer.parseInt(args[6]);
+
+		TopChannelsPolicy topChannelsPolicy = null;
+		if (args.length > 7) {
+			double topChannelsParam = Double.parseDouble(args[7]);
+			if (topChannelsParam >= 1) {
+				topChannelsPolicy = TopChannelsPolicy.createNum(
+						(int)(topChannelsParam + 0.1));
+			} else {
+				topChannelsPolicy = TopChannelsPolicy.createFrac(
+						topChannelsParam);
+			}
+		} else {
+			topChannelsPolicy = TopChannelsPolicy.createNum(1);
+		}
+
+		LimitedChannelsPolicy limitedChannelsPolicy = null;
+		if (args.length > 8) {
+			int limitedChannelsParam = Integer.parseInt(args[8]);
+			limitedChannelsPolicy =
+					new LimitedChannelsPolicy(limitedChannelsParam);
+		} else {
+			limitedChannelsPolicy = new LimitedChannelsPolicy();
+		}
+
+		boolean oldArticle;
+		if (args.length > 9) {
+			oldArticle = Boolean.parseBoolean(args[9]);
+		} else {
+			oldArticle = false;
+		}
 		
 		oneTask(
 				reroutePeriod,
@@ -64,15 +97,18 @@ public class DoTest {
 				getFilename(numGraph),
 				numGraph,
 				reroutingsPerInvocation,
+				topChannelsPolicy,
+				limitedChannelsPolicy,
+				oldArticle,
 				false);
 	}
-	
+
 	static String getFilename(int numGraph) {
 		return "config_files/test/parsing/parse_brite/net" + numGraph + 
 				".brite";
 	}
 
-	static void oneTask( 
+	static void oneTask(
 			final int reroutePeriod,
 			final double durationFactor,
 			final KeepDefaultPath keepDefaultPath,
@@ -81,23 +117,32 @@ public class DoTest {
 			final String filename,
 			final long seed,
 			final int reroutingsPerInvocation,
+			final TopChannelsPolicy topChannelsPolicy,
+			final LimitedChannelsPolicy limitedChannelsPolicy,
+			final boolean oldArticle,
 			final boolean printDetails)
-			
+
 			throws DistributionException, RerouteNetException, IOException,
 					PathRerouterException, DefaultPathRouterException {
 		GraphCreator creator = ParseBrite.parse(
 				filename, 5);
-		PathRerouter rerouter =	new SimpleExpWeightsRerouter(expParam, policy);
+		ExpWeightsRerouter rerouter =	new SimpleExpWeightsRerouter(
+				expParam,
+				policy,
+				topChannelsPolicy,
+				limitedChannelsPolicy,
+				seed,
+				oldArticle);
 		RerouteNet rerouteNet = new RerouteNet(
 				creator,
 				rerouter,
 				reroutingsPerInvocation, 
 				keepDefaultPath);
-		
+
 		FlowGenerator flowGen = new FlowGenerator(
 				creator.getNumGenVertices(),
 				new ExpDistribution(1),
-				
+
 				// duration
 				new ZipfDistribution(2, 10., 100., durationFactor),
 
@@ -112,7 +157,7 @@ public class DoTest {
 				10000,
 				7000, 
 				false);
-		
+
 		double result = oneConfig.run();
 		String caption = 
 				"reroutePeriod: " +
@@ -124,8 +169,11 @@ public class DoTest {
 				"avgChannels " +
 				"avgReroutingsPerFlow " +
 				"expParam " +
-				"reroutingsPerInvocation ";
-		
+				"reroutingsPerInvocation " +
+				"limitedChannelsPolicy " +
+				"numSPInvocations " +
+				"oldArticle";
+
 		String output = 
 				"" + reroutePeriod + " " + 
 				durationFactor + " " + 
@@ -136,17 +184,20 @@ public class DoTest {
 				oneConfig.getAvgChannels() + " " +
 				rerouteNet.avgReroutingsPerFlow() + " " +
 				expParam + " " +
-				reroutingsPerInvocation;
-		
+				reroutingsPerInvocation + " " +
+				limitedChannelsPolicy.numEdges + " " +
+				rerouter.getNumSPInvocations() + " " +
+				oldArticle;
+
 		System.out.println(caption);
 		System.out.println(output);
-		
+
 		if (printDetails) {
 			System.out.println("Num rerouted");
-			
+
 			SortedMap<Integer, Integer> rerouteHist = 
 					rerouteNet.getChannelHistogram();
-			
+
 			for (Map.Entry<Integer, Integer> entry : rerouteHist.entrySet()) {
 				String histOutput = "" + entry.getKey() + " " + entry.getValue();
 				System.out.println(histOutput);

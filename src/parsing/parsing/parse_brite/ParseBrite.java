@@ -3,10 +3,13 @@ package parsing.parse_brite;
 import reroute_network.EdgeData;
 import reroute_network.GraphCreator;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+//import java.nio.file.Files;
+//import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -86,7 +89,16 @@ public final class ParseBrite {
 			int generatingVerticesVsOther) 
 					throws IOException {
 		Vector<EdgeData> allEdgeData = new Vector<EdgeData>();
-		List<String> lines = Files.readAllLines(Paths.get(filename));
+		List<String> lines = new LinkedList<String>();//
+		//List<String> lines = Files.readAllLines(Paths.get(filename));
+		
+		BufferedReader br = new BufferedReader(new FileReader(filename));
+	    String line;
+	    while ((line = br.readLine()) != null) {
+	       lines.add(line);
+	    }
+	    br.close();
+		
 		Iterator<String> iter = lines.iterator();
 		int numNodes = 0;
 		int numEdges = 0;

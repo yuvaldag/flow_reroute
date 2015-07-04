@@ -2,7 +2,8 @@ package reroute_network;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-public class Edge extends DefaultWeightedEdge {
+public class Edge extends DefaultWeightedEdge
+		implements Comparable<Edge> {
 	/**
 	 * 
 	 */
@@ -33,5 +34,13 @@ public class Edge extends DefaultWeightedEdge {
 	
 	public int getId() {
 		return id;
+	}
+	
+	public int compareTo(Edge edge) {
+		double thisAvailability = 1 - (double)usedCapacity / capacity;
+		double otherAvailability = 
+				1 - (double)edge.usedCapacity / edge.capacity;
+		
+		return (int)Math.signum(thisAvailability - otherAvailability);
 	}
 }

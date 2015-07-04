@@ -1,6 +1,9 @@
 package experiment;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Vector;
 
 import reroute_network.DefaultPathRouterException;
 import reroute_network.RerouteNetException;
@@ -11,13 +14,21 @@ public class AdHocTest {
 	public static void main(String[] args) 
 			throws DistributionException, RerouteNetException, IOException, 
 			PathRerouterException, DefaultPathRouterException {
-		String a[] = {"200", "30", "KEEP_DEFAULT", "MAKE_BEFORE_BREAK", "2", "10", "1"};
-		DoTest.main(a);
-		a[2] = "DONT_KEEP_DEFAULT";
-		DoTest.main(a);
-		a[2] = "KEEP_DEFAULT_MOVE_ONCE";
-		DoTest.main(a);
-		a[3] = "BREAK_BEFORE_MAKE";
-		DoTest.main(a);
+		String[] arg = new String[] {
+				"50",
+				"20",
+				"DONT_KEEP_DEFAULT",
+				"BREAK_BEFORE_MAKE",
+				"2",
+				"10",
+				"1",
+				"5",
+				"10",
+				"true",
+		};
+		DoTest.main(arg);
+		/*double a = Double.POSITIVE_INFINITY;
+		a = a - a;
+		System.out.println(a < -1);*/
 	}
 }
